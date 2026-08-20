@@ -298,6 +298,12 @@
                 "null"
               ]
             },
+            "hkd_per_mile": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
             "multiplier": {
               "type": [
                 "number",
@@ -315,7 +321,8 @@
                 "rate_multiplier",
                 "flat_rate",
                 "bonus_points",
-                "cash_rebate"
+                "cash_rebate",
+                "miles"
               ],
               "type": "string"
             }
@@ -324,7 +331,8 @@
             "type",
             "rate",
             "multiplier",
-            "bonus_amount"
+            "bonus_amount",
+            "hkd_per_mile"
           ],
           "type": "object"
         },

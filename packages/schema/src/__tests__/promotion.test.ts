@@ -25,21 +25,56 @@ describe('Promotion', () => {
     expect(() =>
       Promotion.parse(
         promotion({
-          reward: { type: 'rate_multiplier', rate: null, multiplier: null, bonus_amount: null },
+          reward: {
+            type: 'rate_multiplier',
+            rate: null,
+            multiplier: null,
+            bonus_amount: null,
+            hkd_per_mile: null,
+          },
         }),
       ),
     ).toThrow();
     expect(() =>
       Promotion.parse(
         promotion({
-          reward: { type: 'rate_multiplier', rate: 0.05, multiplier: 3, bonus_amount: null },
+          reward: {
+            type: 'rate_multiplier',
+            rate: 0.05,
+            multiplier: 3,
+            bonus_amount: null,
+            hkd_per_mile: null,
+          },
         }),
       ),
     ).toThrow();
     expect(() =>
       Promotion.parse(
         promotion({
-          reward: { type: 'rate_multiplier', rate: null, multiplier: 3, bonus_amount: null },
+          reward: {
+            type: 'rate_multiplier',
+            rate: null,
+            multiplier: 3,
+            bonus_amount: null,
+            hkd_per_mile: null,
+          },
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it('miles 要有 hkd_per_mile，唔可以填 rate/multiplier/bonus_amount', () => {
+    expect(() =>
+      Promotion.parse(
+        promotion({
+          reward: { type: 'miles', rate: null, multiplier: null, bonus_amount: null, hkd_per_mile: null },
+        }),
+      ),
+    ).toThrow();
+    expect(() =>
+      Promotion.parse(
+        promotion({
+          reward: { type: 'miles', rate: null, multiplier: null, bonus_amount: null, hkd_per_mile: 2 },
         }),
       ),
     ).not.toThrow();

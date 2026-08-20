@@ -1,0 +1,94 @@
+{
+  "active": true,
+  "annual_fee": 2000,
+  "annual_fee_waiver_note": "官方 T&C（Simply Cash_TnC_EP，06/2020）第 4 條：持卡人喺上一個年度內（即由信用卡發卡日期之週年日起）符合有關最低結餘要求之「優先理財」/「Premium 理財」客戶，或出糧戶口客戶，即可享年費豁免；須於年費誌賬月份符合上述條件先可享有。",
+  "card_id": "sc_simply_cash_visa",
+  "card_name": "Standard Chartered Simply Cash Visa Card",
+  "card_name_zh": "渣打 Simply Cash Visa 卡",
+  "fx_fee_rate": null,
+  "issuer": "Standard Chartered",
+  "network": "visa",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
+    "evidence_excerpt": "Cardholders will enjoy an annual fee waiver on their Cards for a year ... if they are Priority Banking clients or Premium Banking clients meeting the relevant Minimum Relationship Balance requirement, or payroll account clients.",
+    "last_checked_at": "2026-08-20T13:30:00.000Z",
+    "last_verified_at": "2026-08-20T13:30:00.000Z",
+    "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+  },
+  "rewards": [
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "本地港幣簽賬",
+      "match": {
+        "channel": null,
+        "currency": [
+          "HKD"
+        ],
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
+        "evidence_excerpt": "1.5% Eligible Transactions posted in Hong Kong Dollars",
+        "last_checked_at": "2026-08-20T13:30:00.000Z",
+        "last_verified_at": "2026-08-20T13:30:00.000Z",
+        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": null,
+        "points_per_hkd": null,
+        "rate": 0.015,
+        "type": "cash_rebate"
+      },
+      "rule_id": "sc_simply_cash_visa_local",
+      "tier": null
+    },
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "海外（外幣）簽賬",
+      "match": {
+        "channel": null,
+        "currency": [
+          "FOREIGN"
+        ],
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
+        "evidence_excerpt": "2% Eligible Transactions posted in a currency other than Hong Kong Dollars",
+        "last_checked_at": "2026-08-20T13:30:00.000Z",
+        "last_verified_at": "2026-08-20T13:30:00.000Z",
+        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": null,
+        "points_per_hkd": null,
+        "rate": 0.02,
+        "type": "cash_rebate"
+      },
+      "rule_id": "sc_simply_cash_visa_overseas",
+      "tier": null
+    }
+  ]
+}

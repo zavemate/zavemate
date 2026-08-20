@@ -6,6 +6,7 @@ export const PromotionRewardType = z.enum([
   'flat_rate',
   'bonus_points',
   'cash_rebate',
+  'miles',
 ]);
 export type PromotionRewardType = z.infer<typeof PromotionRewardType>;
 
@@ -14,6 +15,8 @@ export const PromotionReward = z.strictObject({
   rate: z.number().nullable(),
   multiplier: z.number().nullable(),
   bonus_amount: z.number().nullable(),
+  /** miles：每 HKD 要幾多蚊先換到 1 里，同 RewardValue.hkd_per_mile 意思一樣。 */
+  hkd_per_mile: z.number().nullable(),
 });
 export type PromotionReward = z.infer<typeof PromotionReward>;
 
@@ -48,16 +51,17 @@ export const PromotionBase = z.strictObject({
 });
 
 export const Promotion = PromotionBase.superRefine((promo, ctx) => {
-  const { type, rate, multiplier, bonus_amount } = promo.reward;
-  const required: Record<PromotionRewardType, 'rate' | 'multiplier' | 'bonus_amount'> = {
+  const { type, rate, multiplier, bonus_amount, hkd_per_mile } = promo.reward;
+  const required: Record<PromotionRewardType, 'rate' | 'multiplier' | 'bonus_amount' | 'hkd_per_mile'> = {
     rate_multiplier: 'multiplier',
     flat_rate: 'rate',
     cash_rebate: 'rate',
     bonus_points: 'bonus_amount',
+    miles: 'hkd_per_mile',
   };
-  const values = { rate, multiplier, bonus_amount };
+  const values = { rate, multiplier, bonus_amount, hkd_per_mile };
   const field = required[type];
-  for (const key of ['rate', 'multiplier', 'bonus_amount'] as const) {
+  for (const key of ['rate', 'multiplier', 'bonus_amount', 'hkd_per_mile'] as const) {
     const value = values[key];
     if (key === field) {
       if (value === null) {

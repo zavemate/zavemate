@@ -61,7 +61,7 @@ export function promotion(overrides: Record<string, unknown> = {}): Record<strin
     title: '夏日餐飲優惠',
     description: null,
     match: { ...emptyMatch, mcc_include: ['5812'] },
-    reward: { type: 'flat_rate', rate: 0.08, multiplier: null, bonus_amount: null },
+    reward: { type: 'flat_rate', rate: 0.08, multiplier: null, bonus_amount: null, hkd_per_mile: null },
     cap: null,
     stacking: { stackable_with_base: false, stack_group: null, priority: 0 },
     start_date: '2026-07-01',
