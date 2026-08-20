@@ -1,0 +1,391 @@
+{
+  "$ref": "#/definitions/Promotion",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Promotion": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "default": true,
+          "type": "boolean"
+        },
+        "cap": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "period": {
+                  "enum": [
+                    "transaction",
+                    "month",
+                    "quarter",
+                    "year",
+                    "promo_period"
+                  ],
+                  "type": "string"
+                },
+                "pool_id": {
+                  "$ref": "#/definitions/Promotion/properties/promotion_id"
+                },
+                "shared_with": {
+                  "default": [],
+                  "items": {
+                    "$ref": "#/definitions/Promotion/properties/promotion_id"
+                  },
+                  "type": "array"
+                },
+                "unit": {
+                  "enum": [
+                    "reward",
+                    "spend"
+                  ],
+                  "type": "string"
+                },
+                "value": {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "pool_id",
+                "value",
+                "unit",
+                "period"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "card_id": {
+          "$ref": "#/definitions/Promotion/properties/promotion_id"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "match": {
+          "additionalProperties": false,
+          "properties": {
+            "channel": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "online",
+                      "offline",
+                      "mobile_pay",
+                      "recurring"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "currency": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "HKD",
+                      "FOREIGN"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mcc_exclude": {
+              "anyOf": [
+                {
+                  "items": {
+                    "pattern": "^\\d{4}$",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mcc_include": {
+              "anyOf": [
+                {
+                  "items": {
+                    "pattern": "^\\d{4}$",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "merchant_exclude": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "merchant_include": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "min_spend_per_txn": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "channel",
+            "currency",
+            "mcc_include",
+            "mcc_exclude",
+            "merchant_include",
+            "merchant_exclude",
+            "min_spend_per_txn"
+          ],
+          "type": "object"
+        },
+        "new_customer_only": {
+          "default": false,
+          "type": "boolean"
+        },
+        "promotion_id": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_]*$",
+          "type": "string"
+        },
+        "provenance": {
+          "additionalProperties": false,
+          "properties": {
+            "check_fail_count": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "confidence": {
+              "enum": [
+                "official",
+                "crowdsourced",
+                "unconfirmed"
+              ],
+              "type": "string"
+            },
+            "content_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_excerpt": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "last_checked_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "last_verified_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_url": {
+              "format": "uri",
+              "type": "string"
+            }
+          },
+          "required": [
+            "confidence",
+            "source_url",
+            "evidence_excerpt",
+            "content_hash",
+            "last_checked_at",
+            "last_verified_at"
+          ],
+          "type": "object"
+        },
+        "registration_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "requires_registration": {
+          "default": false,
+          "type": "boolean"
+        },
+        "reward": {
+          "additionalProperties": false,
+          "properties": {
+            "bonus_amount": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "multiplier": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "rate": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "type": {
+              "enum": [
+                "rate_multiplier",
+                "flat_rate",
+                "bonus_points",
+                "cash_rebate"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "rate",
+            "multiplier",
+            "bonus_amount"
+          ],
+          "type": "object"
+        },
+        "stacking": {
+          "additionalProperties": false,
+          "properties": {
+            "priority": {
+              "default": 0,
+              "type": "integer"
+            },
+            "stack_group": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Promotion/properties/promotion_id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stackable_with_base": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "stack_group"
+          ],
+          "type": "object"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "promotion_id",
+        "card_id",
+        "title",
+        "description",
+        "match",
+        "reward",
+        "cap",
+        "stacking",
+        "start_date",
+        "end_date",
+        "registration_url",
+        "provenance"
+      ],
+      "type": "object"
+    }
+  }
+}

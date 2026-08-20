@@ -1,0 +1,11 @@
+{
+  "miles": {
+    "asia_miles": 0.12,
+    "avios": 0.11
+  },
+  "note": "積分/里數估值係主觀判斷，唔係事實。獨立於 data/cards 維護，客戶可以喺 /best-card request 覆寫。",
+  "points": {
+    "hsbc_rewardcash": 0.004
+  },
+  "updated_at": "2026-08-19"
+}

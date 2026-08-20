@@ -1,0 +1,17 @@
+{
+  "name": "@zavemate/schema",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "schema:build": "tsx src/cli/generate.ts --write",
+    "schema:check": "tsx src/cli/generate.ts --check"
+  },
+  "dependencies": {
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.5"
+  }
+}
