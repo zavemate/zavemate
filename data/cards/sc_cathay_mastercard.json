@@ -5,6 +5,10 @@
   "card_id": "sc_cathay_mastercard",
   "card_name": "Standard Chartered Cathay Mastercard",
   "card_name_zh": "渣打國泰 Mastercard",
+  "eligibility": {
+    "min_relationship_balance": null,
+    "note": null
+  },
   "fx_fee_rate": null,
   "issuer": "Standard Chartered",
   "network": "mastercard",

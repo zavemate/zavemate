@@ -1,0 +1,60 @@
+{
+  "active": true,
+  "annual_fee": 4000,
+  "annual_fee_waiver_note": "官方年費豁免條款：喺上一個年度內（即由信用卡發卡日期之週年日起）維持 HK$1,000,000 或以上每日平均總結餘（即符合優先理財資格）即可享年費豁免；須於年費誌賬月份符合條件先可享有。",
+  "card_id": "sc_cathay_mastercard_priority",
+  "card_name": "Standard Chartered Cathay Mastercard – Priority Banking",
+  "card_name_zh": "渣打國泰 Mastercard – 優先理財",
+  "eligibility": {
+    "min_relationship_balance": 1000000,
+    "note": "渣打優先理財（Priority Banking）"
+  },
+  "fx_fee_rate": null,
+  "issuer": "Standard Chartered",
+  "network": "mastercard",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "4ecfdaf6f3e1bb02b0a7197bddd0ec6ab3048a430d0c374621f7bbcb4d3d0245",
+    "evidence_excerpt": "This Rewards Scheme is only applicable to cardholders of Standard Chartered Cathay Mastercard, Standard Chartered Cathay Mastercard – Priority Banking and Standard Chartered Cathay Mastercard – Priority Private. Unless otherwise specified, Cardholders will earn 1 Asia Mile for every accumulated spending of HKD6 in eligible transactions.",
+    "last_checked_at": "2026-08-20T14:00:00.000Z",
+    "last_verified_at": "2026-08-20T14:00:00.000Z",
+    "source_url": "https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf"
+  },
+  "rewards": [
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "全部合資格簽賬（永久基本比率，唔限貨幣/商戶類別。銀行不時推出限時「指定類別簽賬獎賞」優惠，令個別類別喺推廣期內好過呢條，見同名 promotion）",
+      "match": {
+        "channel": null,
+        "currency": null,
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "4ecfdaf6f3e1bb02b0a7197bddd0ec6ab3048a430d0c374621f7bbcb4d3d0245",
+        "evidence_excerpt": "Unless otherwise specified, Cardholders will earn 1 Asia Mile (\"Miles\") for every accumulated spending of HKD6 in eligible transactions (\"Eligible Transactions\", which is described further in clause 3 below) made with their Cards.",
+        "last_checked_at": "2026-08-20T14:00:00.000Z",
+        "last_verified_at": "2026-08-20T14:00:00.000Z",
+        "source_url": "https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": 6,
+        "points_per_hkd": null,
+        "rate": null,
+        "type": "miles"
+      },
+      "rule_id": "sc_cathay_mastercard_priority_base",
+      "tier": null
+    }
+  ]
+}

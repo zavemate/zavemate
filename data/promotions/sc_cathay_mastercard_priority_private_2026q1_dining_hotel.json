@@ -1,0 +1,50 @@
+{
+  "active": true,
+  "cap": null,
+  "card_id": "sc_cathay_mastercard_priority_private",
+  "description": "「指定類別簽賬獎賞」限時優惠——食肆及酒店簽賬（要以港幣誌賬先計呢個類別；如果以外幣誌賬就當「海外」類別計，唔會兩邊都計）。比率好過永久 base rate（HK$6=1里）。",
+  "end_date": "2026-12-31",
+  "match": {
+    "channel": null,
+    "currency": [
+      "HKD"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": [
+      "5812",
+      "5813",
+      "5814",
+      "7011"
+    ],
+    "merchant_exclude": null,
+    "merchant_include": null,
+    "min_spend_per_txn": null
+  },
+  "new_customer_only": false,
+  "promotion_id": "sc_cathay_mastercard_priority_private_2026q1_dining_hotel",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "f632df7ffc9341ffee21464ed24ffe33fb87c9d647313c9c89251e6844101c50",
+    "evidence_excerpt": "Applicable to Standard Chartered Cathay Mastercard – Priority Private: Every HKD4 in \"Dining\" and \"Hotels\" category → 1 Mile.",
+    "last_checked_at": "2026-08-20T14:00:00.000Z",
+    "last_verified_at": "2026-08-20T14:00:00.000Z",
+    "source_url": "https://av.sc.com/hk/content/docs/hk-cc-cx-card-selected-category-tnc.pdf"
+  },
+  "registration_url": null,
+  "requires_registration": false,
+  "reward": {
+    "bonus_amount": null,
+    "hkd_per_mile": 4,
+    "multiplier": null,
+    "rate": null,
+    "type": "miles"
+  },
+  "stacking": {
+    "priority": 10,
+    "stack_group": "sc_cathay_mastercard_priority_private_2026_categories",
+    "stackable_with_base": false
+  },
+  "start_date": "2026-01-01",
+  "title": "食肆及酒店簽賬 —— 指定類別簽賬獎賞（2026，優先私人理財）"
+}

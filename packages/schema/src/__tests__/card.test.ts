@@ -52,6 +52,20 @@ describe('Card', () => {
     ).not.toThrow();
   });
 
+  it('eligibility.min_relationship_balance 同 note 要一齊有值或者一齊 null', () => {
+    expect(() =>
+      Card.parse(card({ eligibility: { min_relationship_balance: 1000000, note: null } })),
+    ).toThrow(/eligibility/);
+    expect(() =>
+      Card.parse(card({ eligibility: { min_relationship_balance: null, note: '渣打優先理財' } })),
+    ).toThrow(/eligibility/);
+    expect(() =>
+      Card.parse(
+        card({ eligibility: { min_relationship_balance: 1000000, note: '渣打優先理財' } }),
+      ),
+    ).not.toThrow();
+  });
+
   it('cap.shared_with 唔可以指住唔存在嘅 rule', () => {
     expect(() =>
       Card.parse(

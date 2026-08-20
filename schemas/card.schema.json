@@ -34,6 +34,33 @@
             "null"
           ]
         },
+        "eligibility": {
+          "additionalProperties": false,
+          "properties": {
+            "min_relationship_balance": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "min_relationship_balance",
+            "note"
+          ],
+          "type": "object"
+        },
         "fx_fee_rate": {
           "type": [
             "number",
@@ -448,6 +475,7 @@
         "annual_fee",
         "annual_fee_waiver_note",
         "fx_fee_rate",
+        "eligibility",
         "rewards",
         "provenance"
       ],

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cap, Id, MatchCriteria, Provenance, TierPeriod } from './common.ts';
+import { Cap, Eligibility, Id, MatchCriteria, Provenance, TierPeriod } from './common.ts';
 
 export const RewardType = z.enum(['cash_rebate', 'points', 'miles']);
 export type RewardType = z.infer<typeof RewardType>;
@@ -136,6 +136,7 @@ export const CardBase = z.strictObject({
   annual_fee: z.number().nonnegative(),
   annual_fee_waiver_note: z.string().nullable(),
   fx_fee_rate: z.number().nullable(),
+  eligibility: Eligibility,
   active: z.boolean().default(true),
   rewards: z.array(RewardRule),
   /** 卡層面嘅出處（產品主頁）。 */
@@ -143,6 +144,17 @@ export const CardBase = z.strictObject({
 });
 
 export const Card = CardBase.superRefine((card, ctx) => {
+  if (
+    (card.eligibility.min_relationship_balance === null) !==
+    (card.eligibility.note === null)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['eligibility'],
+      message: 'eligibility.min_relationship_balance 同 eligibility.note 要一齊有值或者一齊 null',
+    });
+  }
+
   const seen = new Set<string>();
   for (const [index, rule] of card.rewards.entries()) {
     if (seen.has(rule.rule_id)) {

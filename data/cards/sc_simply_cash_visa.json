@@ -5,6 +5,10 @@
   "card_id": "sc_simply_cash_visa",
   "card_name": "Standard Chartered Simply Cash Visa Card",
   "card_name_zh": "渣打 Simply Cash Visa 卡",
+  "eligibility": {
+    "min_relationship_balance": null,
+    "note": null
+  },
   "fx_fee_rate": null,
   "issuer": "Standard Chartered",
   "network": "visa",

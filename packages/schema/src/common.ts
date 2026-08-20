@@ -80,3 +80,17 @@ export type Cap = z.infer<typeof Cap>;
 
 export const TierPeriod = z.enum(['transaction', 'month', 'quarter', 'year']);
 export type TierPeriod = z.infer<typeof TierPeriod>;
+
+/**
+ * 有啲卡（例如渣打「優先理財」/「優先私人理財」、滙豐「卓越理財」）唔係憑簽賬分層，
+ * 而係要求申請人本身喺銀行維持一定嘅資產／結餘先申請得到 —— 呢個係產品門檻，
+ * 唔係回贈計算嘅一部分。分開做獨立 card_id（唔好夾埋一張卡用最高等級嘅數字），
+ * 用呢個欄位表達門檻，等 agent 可以按用戶自己嘅資產篩選邊張卡真係攞到手。
+ */
+export const Eligibility = z.strictObject({
+  /** null = 一般人都申請得到，冇特別銀行關係要求。 */
+  min_relationship_balance: z.number().positive().nullable(),
+  /** 人睇嘅門檻名稱，例如「渣打優先理財」、「滙豐卓越理財」。min_relationship_balance 係 null 就應該都係 null。 */
+  note: z.string().nullable(),
+});
+export type Eligibility = z.infer<typeof Eligibility>;

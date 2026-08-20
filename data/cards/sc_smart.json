@@ -5,6 +5,10 @@
   "card_id": "sc_smart",
   "card_name": "Standard Chartered Smart Credit Card",
   "card_name_zh": "渣打 Smart 信用卡",
+  "eligibility": {
+    "min_relationship_balance": null,
+    "note": null
+  },
   "fx_fee_rate": 0,
   "issuer": "Standard Chartered",
   "network": "mastercard",

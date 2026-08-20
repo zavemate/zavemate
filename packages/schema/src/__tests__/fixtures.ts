@@ -47,6 +47,7 @@ export function card(overrides: Record<string, unknown> = {}): Record<string, un
     annual_fee: 0,
     annual_fee_waiver_note: null,
     fx_fee_rate: 0.0195,
+    eligibility: { min_relationship_balance: null, note: null },
     active: true,
     rewards: [rewardRule()],
     provenance,
