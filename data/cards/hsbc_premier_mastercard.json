@@ -1,0 +1,60 @@
+{
+  "active": true,
+  "annual_fee": 0,
+  "annual_fee_waiver_note": "官方 Key Facts Statement 列明 Annual Fee「Waived permanently」（基本卡同 additional card combined billing 都係），故 annual_fee 直接填 0。呢個豁免同 eligibility 門檻本身係分開嘅兩件事——冇資格做卓越理財就攞唔到呢張卡，唔關年費事。",
+  "card_id": "hsbc_premier_mastercard",
+  "card_name": "HSBC Premier Mastercard",
+  "card_name_zh": "滙豐卓越理財萬事達卡",
+  "eligibility": {
+    "min_relationship_balance": 1000000,
+    "note": "滙豐卓越理財（HSBC Premier）"
+  },
+  "fx_fee_rate": 0.0195,
+  "issuer": "HSBC",
+  "network": "mastercard",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "06e92327d7431d0ae503ff8838d1f3420a2bf6ee224799a4a5b9a6a12d97440c",
+    "evidence_excerpt": "you earn $1 RewardCash for every HK$250 spent with your eligible card denominated in Hong Kong dollar. ... Every $1 RewardCash equals to HK$1 at RewardCash e-Shop. To qualify for HSBC Premier you need to maintain a Total Relationship Balance of HKD1,000,000 or more.",
+    "last_checked_at": "2026-08-21T04:00:00.000Z",
+    "last_verified_at": "2026-08-21T04:00:00.000Z",
+    "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+  },
+  "rewards": [
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "基本回贈（全部合資格港元簽賬，唔限商戶/類別/貨幣——RewardCash Programme 通用 base rate，1 RewardCash = HK$1 固定，故直接記做 cash_rebate。呢張卡另有「Rewards of Your Choice」用戶可以自選一個類別攞 6X／2.4% 加成，因為要用戶自己揀，而家個 schema 表達唔到「用戶自選類別」，冇入。)",
+      "match": {
+        "channel": null,
+        "currency": null,
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "06e92327d7431d0ae503ff8838d1f3420a2bf6ee224799a4a5b9a6a12d97440c",
+        "evidence_excerpt": "you earn $1 RewardCash for every HK$250 spent with your eligible card denominated in Hong Kong dollar (0.4%); Every $1 RewardCash equals to HK$1 at RewardCash e-Shop.",
+        "last_checked_at": "2026-08-21T04:00:00.000Z",
+        "last_verified_at": "2026-08-21T04:00:00.000Z",
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": null,
+        "points_per_hkd": null,
+        "rate": 0.004,
+        "type": "cash_rebate"
+      },
+      "rule_id": "hsbc_premier_mastercard_base",
+      "tier": null
+    }
+  ]
+}

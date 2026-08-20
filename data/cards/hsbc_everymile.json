@@ -1,0 +1,141 @@
+{
+  "active": true,
+  "annual_fee": 2000,
+  "annual_fee_waiver_note": "官方 Key Facts Statement 註 4：年費 HK$2,000，如該年度 HSBC EveryMile 信用卡簽賬達指定金額，下年度可獲年費豁免（具體金額未搵到，詳情見 hsbc.com.hk/everymile）。",
+  "card_id": "hsbc_everymile",
+  "card_name": "HSBC EveryMile Credit Card",
+  "card_name_zh": "滙豐 EveryMile 信用卡",
+  "eligibility": {
+    "min_relationship_balance": null,
+    "note": null
+  },
+  "fx_fee_rate": 0.0195,
+  "issuer": "HSBC",
+  "network": "visa",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "498fa4b666020c955c93c220ae0ff3b2584b47f2b2215d3583a2c132dab51da0",
+    "evidence_excerpt": "Enjoy every HK$2 spent = 1 mile for the below Designated Everyday & Travel Spend Merchants. EveryMile Cardholders can earn 2.5% RewardCash rebate for the Designated Everyday & Travel Spend Merchants, and a preferential rate of 1 RewardCash to 20 miles when converting RewardCash to miles.",
+    "last_checked_at": "2026-08-21T04:00:00.000Z",
+    "last_verified_at": "2026-08-21T04:00:00.000Z",
+    "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
+  },
+  "rewards": [
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "指定日常及旅遊消費商戶（咖啡輕食、本地交通、跨境交通、旅遊服務等，見官方商戶清單，會不時更改）",
+      "match": {
+        "channel": null,
+        "currency": null,
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": [
+          "% Arabica",
+          "APT. Coffee",
+          "BASAO Tea",
+          "Blue Bottle Coffee",
+          "Chun Shui Tang",
+          "Cupping Room Coffee Roasters",
+          "Dazzling Café",
+          "FLIPPER's",
+          "Green Common",
+          "HABITU",
+          "INN – I'm Not Nothing",
+          "Lady M",
+          "Mother Pearl",
+          "NINETYs",
+          "NOC",
+          "Pacific Coffee",
+          "Pret A Manger",
+          "sensory ZERO",
+          "Starbucks Coffee",
+          "Tea WG Salon & Boutique",
+          "Urban Coffee Roaster",
+          "KMB",
+          "LWB",
+          "CITYBUS",
+          "MTR",
+          "HK Tramways",
+          "Caltex",
+          "Esso",
+          "PetroChina",
+          "Sinopec",
+          "Shell",
+          "TESLA SuperCharger",
+          "China Travel Service (Hong Kong)",
+          "Kwoon Chung Bus",
+          "12306 China Railway",
+          "Eternal East Tours",
+          "GoByBus.hk",
+          "AIRSIM",
+          "Cotai Water Jet",
+          "kkday",
+          "Klook",
+          "TurboJet",
+          "AVIS",
+          "HERTZ",
+          "Tocoo Car Rental",
+          "TOYOTA Rent a Car"
+        ],
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "498fa4b666020c955c93c220ae0ff3b2584b47f2b2215d3583a2c132dab51da0",
+        "evidence_excerpt": "Enjoy every HK$2 spent = 1 mile for the below Designated Everyday & Travel Spend Merchants.",
+        "last_checked_at": "2026-08-21T04:00:00.000Z",
+        "last_verified_at": "2026-08-21T04:00:00.000Z",
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": 2,
+        "points_per_hkd": null,
+        "rate": null,
+        "type": "miles"
+      },
+      "rule_id": "hsbc_everymile_designated",
+      "tier": null
+    },
+    {
+      "cap": null,
+      "effective_from": null,
+      "effective_to": null,
+      "label": "一般合資格簽賬（非指定商戶）——呢個數係我哋自己計出嚟，唔係官方單一句直接寫明：用 RewardCash Programme 通用 base rate（每 HK$250=$1 RewardCash，即 0.4%）乘 EveryMile 專屬「1 RewardCash=20里」換算率，得出 HK$12.5=1里。第三方網站有講「HK$5=1里」，同呢個推算唔一致，我哋搵唔到官方原文支持 $5 呢個數，故冇採用，寧願用推算出嚟、有根有據嘅 $12.5，confidence 定 official 因為兩個組成部分都係官方確認嘅事實，但呢條 rule 本身係推算值，唔係直接引句。",
+      "match": {
+        "channel": null,
+        "currency": null,
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "unconfirmed",
+        "content_hash": "06e92327d7431d0ae503ff8838d1f3420a2bf6ee224799a4a5b9a6a12d97440c",
+        "evidence_excerpt": "推算：RewardCash Programme base rate「every HK$250 spent = $1 RewardCash」（0.4%） × EveryMile 一頁紙嘅「1 RewardCash to 20 miles」preferential conversion rate = 8% cash-equivalent，即 HK$12.5 = 1 里。呢個係推算值，唔係官方單一句直接寫明，故 confidence 定 unconfirmed。",
+        "last_checked_at": "2026-08-21T04:00:00.000Z",
+        "last_verified_at": "2026-08-21T04:00:00.000Z",
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": 12.5,
+        "points_per_hkd": null,
+        "rate": null,
+        "type": "miles"
+      },
+      "rule_id": "hsbc_everymile_general",
+      "tier": null
+    }
+  ]
+}

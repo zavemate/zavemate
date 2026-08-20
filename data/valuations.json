@@ -3,9 +3,7 @@
     "asia_miles": 0.12,
     "avios": 0.11
   },
-  "note": "積分/里數估值係主觀判斷，唔係事實。獨立於 data/cards 維護，客戶可以喺 /best-card request 覆寫。",
-  "points": {
-    "hsbc_rewardcash": 0.004
-  },
-  "updated_at": "2026-08-19"
+  "note": "積分/里數估值係主觀判斷，唔係事實。獨立於 data/cards 維護，客戶可以喺 /best-card request 覆寫。滙豐 RewardCash 冇喺呢度——官方 T&C 寫死 1 RewardCash = HK$1（固定，唔係主觀估值），所以 HSBC 啲卡直接用 cash_rebate 型記低，唔使呢個檔案。",
+  "points": {},
+  "updated_at": "2026-08-21"
 }

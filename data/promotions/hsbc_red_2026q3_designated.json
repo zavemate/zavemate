@@ -1,0 +1,65 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_red_2026q3_designated_cap",
+    "shared_with": [],
+    "unit": "spend",
+    "value": 1250
+  },
+  "card_id": "hsbc_red",
+  "description": "指定商戶簽賬 8% 獎賞錢回贈（含基本獎賞，首 HK$1,250/月），超出上限跌返做基本回贈 0.4%。指定商戶名單會不時更改（呢個版本 2026-07-15 生效：本地含壽司郎/譚仔三哥米線/譚仔雲南米線/Bakehouse/Decathlon/NAMCO/TAITO STATION/Sephora/@cosme/3COINS；海外含 FamilyMart 日本分店/Suica/Tmoney/OLIVE YOUNG 南韓分店）。",
+  "end_date": "2026-12-31",
+  "match": {
+    "channel": null,
+    "currency": null,
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "香港壽司郎",
+      "譚仔三哥米線",
+      "譚仔雲南米線",
+      "Bakehouse",
+      "Decathlon Hong Kong",
+      "NAMCO",
+      "TAITO STATION",
+      "Sephora",
+      "@cosme STORE",
+      "@cosme HONG KONG",
+      "3COINS",
+      "FamilyMart",
+      "Suica",
+      "Tmoney",
+      "OLIVE YOUNG"
+    ],
+    "min_spend_per_txn": null
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_red_2026q3_designated",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "official",
+    "content_hash": "3bce7abf149de50c4f59c9ce02f04c06fd51f3ac598b160170a93f384344d60c",
+    "evidence_excerpt": "本推廣優惠適用於 2026 年 7 月 1 日至 2026 年 12 月 31 日，包括首尾兩日（「推廣期」）。以下類別可賺取高達 8%額外「獎賞錢」回贈……首港幣 1,250 元指定商戶簽賬……可享 8%「獎賞錢」回贈。",
+    "last_checked_at": "2026-08-21T04:00:00.000Z",
+    "last_verified_at": "2026-08-21T04:00:00.000Z",
+    "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
+  },
+  "registration_url": null,
+  "requires_registration": false,
+  "reward": {
+    "bonus_amount": null,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": 0.08,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 10,
+    "stack_group": "hsbc_red_2026q3_bonus",
+    "stackable_with_base": false
+  },
+  "start_date": "2026-07-01",
+  "title": "指定商戶簽賬 8% 獎賞錢（2026 年 7–12 月）"
+}
