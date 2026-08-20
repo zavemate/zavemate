@@ -78,6 +78,23 @@ describe('Promotion', () => {
         }),
       ),
     ).not.toThrow();
+    expect(() =>
+      Promotion.parse(
+        promotion({
+          reward: { type: 'miles', rate: null, multiplier: 3, bonus_amount: null, hkd_per_mile: 2 },
+        }),
+      ),
+    ).toThrow();
+  });
+
+  it('miles 嘅 hkd_per_mile 要大過 0', () => {
+    expect(() =>
+      Promotion.parse(
+        promotion({
+          reward: { type: 'miles', rate: null, multiplier: null, bonus_amount: null, hkd_per_mile: 0 },
+        }),
+      ),
+    ).toThrow();
   });
 
   it('end_date 唔可以早過 start_date', () => {

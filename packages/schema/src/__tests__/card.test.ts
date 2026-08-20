@@ -66,6 +66,22 @@ describe('Card', () => {
     ).not.toThrow();
   });
 
+  it('一般人都申請得到嘅卡，eligibility 兩個欄位一齊 null 就過', () => {
+    const parsed = Card.parse(
+      card({ eligibility: { min_relationship_balance: null, note: null } }),
+    );
+    expect(parsed.eligibility.min_relationship_balance).toBeNull();
+  });
+
+  it('eligibility.min_relationship_balance 要大過 0，唔可以係 0 或者負數', () => {
+    expect(() =>
+      Card.parse(card({ eligibility: { min_relationship_balance: 0, note: '滙豐卓越理財' } })),
+    ).toThrow();
+    expect(() =>
+      Card.parse(card({ eligibility: { min_relationship_balance: -1000000, note: '滙豐卓越理財' } })),
+    ).toThrow();
+  });
+
   it('cap.shared_with 唔可以指住唔存在嘅 rule', () => {
     expect(() =>
       Card.parse(
@@ -120,6 +136,40 @@ describe('RewardRule', () => {
         }),
       ),
     ).not.toThrow();
+  });
+
+  it('miles 一定要有 hkd_per_mile，唔可以同時填 rate', () => {
+    expect(() =>
+      RewardRule.parse(
+        rewardRule({
+          reward: { type: 'miles', rate: null, points_per_hkd: null, hkd_per_mile: null },
+        }),
+      ),
+    ).toThrow();
+    expect(() =>
+      RewardRule.parse(
+        rewardRule({
+          reward: { type: 'miles', rate: 0.04, points_per_hkd: null, hkd_per_mile: 6 },
+        }),
+      ),
+    ).toThrow();
+  });
+
+  it('hkd_per_mile 要大過 0', () => {
+    expect(() =>
+      RewardRule.parse(
+        rewardRule({
+          reward: { type: 'miles', rate: null, points_per_hkd: null, hkd_per_mile: 0 },
+        }),
+      ),
+    ).toThrow();
+    expect(() =>
+      RewardRule.parse(
+        rewardRule({
+          reward: { type: 'miles', rate: null, points_per_hkd: null, hkd_per_mile: -2 },
+        }),
+      ),
+    ).toThrow();
   });
 
   it('cash_rebate rate 係比例，唔可以大過 1', () => {
