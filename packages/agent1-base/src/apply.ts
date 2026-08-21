@@ -98,7 +98,12 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
         r.provenance.check_fail_count = 0;
         r.provenance.last_checked_at = now;
         r.provenance.confidence = 'unconfirmed';
-        if (extracted.evidence_excerpt) r.provenance.evidence_excerpt = extracted.evidence_excerpt;
+        // 數值冇郁，所以舊 evidence 一樣支持得住同一個數字——淨係喺本身冇
+        // evidence 嘅時候先補上，唔覆寫。「讀到但睇唔清」正正就係最唔應該
+        // 用 LLM 嘅節錄換走人手寫嘅說明嗰種情況。
+        if (extracted.evidence_excerpt && r.provenance.evidence_excerpt === null) {
+          r.provenance.evidence_excerpt = extracted.evidence_excerpt;
+        }
         // 故意唔郁 last_verified_at、唔郁數值（§6.2：讀到但睇唔清）。
       });
       notes.push(`? ${workRule.cardId}/${workRule.rule_id}：讀到但條款睇唔清，confidence 降做 unconfirmed，數值維持原值`);
@@ -133,13 +138,21 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
 
     const oldRewardJson = JSON.stringify(workRule.current);
     const newRewardJson = JSON.stringify(extractedReward);
+    const rewardChanged = oldRewardJson !== newRewardJson;
 
     patchRule(workRule.cardId, workRule.rule_id, (r) => {
       r.provenance.check_fail_count = 0;
       r.provenance.last_checked_at = now;
       r.provenance.last_verified_at = now;
       r.provenance.confidence = 'official';
-      if (extracted.evidence_excerpt) r.provenance.evidence_excerpt = extracted.evidence_excerpt;
+      // evidence_excerpt 淨係喺數值真係變咗（或者本身冇 evidence）先換。
+      // 數值一樣嘅話，舊嗰句原文一樣支持得住同一個數字，而人手揀嘅節錄
+      // 通常特登保留咗「Unless otherwise specified」呢類限定語同推算說明——
+      // 換做 LLM 嘅精簡版淨係會蝕。數值變咗就一定要換，因為嗰陣舊節錄講緊
+      // 一個已經唔存在嘅數字，留住就係靜靜錯。
+      if (extracted.evidence_excerpt && (rewardChanged || r.provenance.evidence_excerpt === null)) {
+        r.provenance.evidence_excerpt = extracted.evidence_excerpt;
+      }
       r.reward = extractedReward;
 
       if (r.cap !== null && extracted.cap_value !== null && extracted.cap_unit !== null) {
@@ -152,9 +165,9 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
     });
 
     notes.push(
-      oldRewardJson === newRewardJson
-        ? `✓ ${workRule.cardId}/${workRule.rule_id}：核實過，數值不變`
-        : `🔄 ${workRule.cardId}/${workRule.rule_id}：reward 由 ${oldRewardJson} 變 ${newRewardJson}`,
+      rewardChanged
+        ? `🔄 ${workRule.cardId}/${workRule.rule_id}：reward 由 ${oldRewardJson} 變 ${newRewardJson}`
+        : `✓ ${workRule.cardId}/${workRule.rule_id}：核實過，數值不變`,
     );
   }
 

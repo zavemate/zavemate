@@ -125,6 +125,129 @@ describe('applyWork（extracted）', () => {
     expect(result.notes.some((n) => n.startsWith('✓'))).toBe(true);
   });
 
+  it('official + 數值不變 → 唔覆寫人手寫嘅 evidence_excerpt', () => {
+    const result = applyWork(
+      cardsById(),
+      makeWork(),
+      {
+        kind: 'extracted',
+        contentHash: 'new-hash',
+        fetchedAt: NOW,
+        result: {
+          rules: [
+            {
+              rule_id: 'demo_card_online',
+              found: true,
+              reward: { type: 'cash_rebate', rate: 0.04, points_per_hkd: null, hkd_per_mile: null },
+              cap_value: null,
+              cap_unit: null,
+              effective_from: null,
+              confidence: 'official',
+              evidence_excerpt: '4% 回贈', // LLM 精簡版，冇咗限定語
+            },
+          ],
+        },
+        usage: [],
+      },
+      NOW,
+    );
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 4%'); // 原本嗰句留返
+  });
+
+  it('official + 數值變咗 → 一定要換 evidence_excerpt（舊嗰句講緊已經唔存在嘅數字）', () => {
+    const result = applyWork(
+      cardsById(),
+      makeWork(),
+      {
+        kind: 'extracted',
+        contentHash: 'new-hash',
+        fetchedAt: NOW,
+        result: {
+          rules: [
+            {
+              rule_id: 'demo_card_online',
+              found: true,
+              reward: { type: 'cash_rebate', rate: 0.038, points_per_hkd: null, hkd_per_mile: null },
+              cap_value: null,
+              cap_unit: null,
+              effective_from: null,
+              confidence: 'official',
+              evidence_excerpt: '網上簽賬回贈 3.8%',
+            },
+          ],
+        },
+        usage: [],
+      },
+      NOW,
+    );
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 3.8%');
+  });
+
+  it('official + 數值不變 + 本身冇 evidence → 補返上去', () => {
+    const cards = new Map([
+      ['demo_card', card({ rewards: [rewardRule({ provenance: provenance({ evidence_excerpt: null }) })] })],
+    ]);
+    const result = applyWork(
+      cards,
+      makeWork(),
+      {
+        kind: 'extracted',
+        contentHash: 'new-hash',
+        fetchedAt: NOW,
+        result: {
+          rules: [
+            {
+              rule_id: 'demo_card_online',
+              found: true,
+              reward: { type: 'cash_rebate', rate: 0.04, points_per_hkd: null, hkd_per_mile: null },
+              cap_value: null,
+              cap_unit: null,
+              effective_from: null,
+              confidence: 'official',
+              evidence_excerpt: '網上簽賬回贈 4%',
+            },
+          ],
+        },
+        usage: [],
+      },
+      NOW,
+    );
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 4%');
+  });
+
+  it('unconfirmed → 唔覆寫人手寫嘅 evidence_excerpt（數值根本冇郁）', () => {
+    const result = applyWork(
+      cardsById(),
+      makeWork(),
+      {
+        kind: 'extracted',
+        contentHash: 'new-hash',
+        fetchedAt: NOW,
+        result: {
+          rules: [
+            {
+              rule_id: 'demo_card_online',
+              found: true,
+              reward: { type: 'cash_rebate', rate: 0.09, points_per_hkd: null, hkd_per_mile: null },
+              cap_value: null,
+              cap_unit: null,
+              effective_from: null,
+              confidence: 'unconfirmed',
+              evidence_excerpt: '睇唔清',
+            },
+          ],
+        },
+        usage: [],
+      },
+      NOW,
+    );
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 4%');
+  });
+
   it('confidence=unconfirmed → 唔改數值、唔改 last_verified_at', () => {
     const result = applyWork(
       cardsById(),
