@@ -1,0 +1,36 @@
+name: agent1
+
+# §6.4：逢星期一 04:00 HKT（UTC+8）= 星期日 20:00 UTC。
+on:
+  schedule:
+    - cron: '0 20 * * 0'
+  workflow_dispatch: {} # 俾人手觸發（Phase 2 acceptance：手動觸發能開出 PR）
+
+permissions:
+  contents: write # openPR() 用 Contents API 開 branch + 寫檔
+  pull-requests: write # 開 PR + 加 label
+
+concurrency:
+  group: agent1
+  cancel-in-progress: false
+
+jobs:
+  agent1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: 跑 Agent 1
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          # 用 GitHub 自動發嘅 per-run token（見上面 permissions），跑完即棄，
+          # 唔使自己開 PAT。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx packages/agent1-base/src/cli.ts
