@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@zavemate/schema": "*"
+    "@zavemate/schema": "*",
+    "pdf-parse": "^2.4.5"
   }
 }
