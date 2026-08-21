@@ -7,3 +7,7 @@ coverage/
 .DS_Store
 *.log
 .wrangler/
+
+# 商業策略/路線圖文件——淨係本地睇，唔上 GitHub（見 2026-08-21 決定）
+/CLAUDE.md
+/BUILD_SPEC.md
