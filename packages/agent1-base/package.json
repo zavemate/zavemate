@@ -1,0 +1,14 @@
+{
+  "name": "@zavemate/agent1-base",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@zavemate/core": "*",
+    "@zavemate/schema": "*",
+    "zod-to-json-schema": "^3.23.5"
+  }
+}
