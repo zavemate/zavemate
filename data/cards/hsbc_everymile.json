@@ -120,9 +120,9 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "unconfirmed",
-        "content_hash": "06e92327d7431d0ae503ff8838d1f3420a2bf6ee224799a4a5b9a6a12d97440c",
-        "evidence_excerpt": "推算：RewardCash Programme base rate「every HK$250 spent = $1 RewardCash」（0.4%） × EveryMile 一頁紙嘅「1 RewardCash to 20 miles」preferential conversion rate = 8% cash-equivalent，即 HK$12.5 = 1 里。呢個係推算值，唔係官方單一句直接寫明，故 confidence 定 unconfirmed。",
-        "last_checked_at": "2026-08-21T04:00:00.000Z",
+        "content_hash": "907ecd897181b0d79322dc9c201d7acff55714f1f4639b5ab65aeb7cadbeb2fb",
+        "evidence_excerpt": "RewardCash Programme通用base rate（每HK$250=$1 RewardCash，即0.4%）乘EveryMile專屬「1 RewardCash=20里」換算率，得出HK$12.5=1里。",
+        "last_checked_at": "2026-08-21T16:42:06.224Z",
         "last_verified_at": "2026-08-21T04:00:00.000Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
       },
