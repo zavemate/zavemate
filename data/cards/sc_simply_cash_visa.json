@@ -41,10 +41,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
-        "evidence_excerpt": "1.5% Eligible Transactions posted in Hong Kong Dollars",
-        "last_checked_at": "2026-08-20T13:30:00.000Z",
-        "last_verified_at": "2026-08-20T13:30:00.000Z",
+        "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
+        "evidence_excerpt": "1.5% 以港幣誌賬之合資格簽賬",
+        "last_checked_at": "2026-08-21T16:42:06.224Z",
+        "last_verified_at": "2026-08-21T16:42:06.224Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
       },
       "registration_url": null,
@@ -77,10 +77,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
-        "evidence_excerpt": "2% Eligible Transactions posted in a currency other than Hong Kong Dollars",
-        "last_checked_at": "2026-08-20T13:30:00.000Z",
-        "last_verified_at": "2026-08-20T13:30:00.000Z",
+        "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
+        "evidence_excerpt": "2% 以港幣以外之貨幣誌賬之合資格簽賬",
+        "last_checked_at": "2026-08-21T16:42:06.224Z",
+        "last_verified_at": "2026-08-21T16:42:06.224Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
       },
       "registration_url": null,
