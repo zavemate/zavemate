@@ -4,9 +4,9 @@
  * 三種 render_mode：
  * - html：直接攞返 HTTP response body
  * - pdf：下載完用 pdf-parse 抽文字（條款細則通常喺呢度）
- * - js：要用 Cloudflare Browser Rendering API 攞已經行完 JS 嘅 HTML —— 呢個環境
- *   未設定 CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID，做唔到，call 咗會 throw
- *   FetchError，等 Cloudflare 資源就位先實作。
+ * - js：用 Cloudflare Browser Rendering API 攞已經行完 JS 嘅 HTML（SPA 頁面
+ *   淨係 fetch HTML 嗰陣通常得個空殼）。要 CLOUDFLARE_API_TOKEN /
+ *   CLOUDFLARE_ACCOUNT_ID，冇提供就 throw FetchError，唔會靜靜噉當攞到。
  *
  * §6.2「讀唔到」處理：非 2xx / timeout / network error 一律 throw FetchError，
  * 唔會改任何數值——call 嗰邊（agent orchestration，未寫）負責 catch 咗之後
@@ -20,8 +20,15 @@ export interface FetchResult {
   fetchedAt: string; // ISO datetime
 }
 
+export interface CloudflareCredentials {
+  apiToken: string;
+  accountId: string;
+}
+
 export interface FetchOptions {
   timeoutMs?: number;
+  /** js render_mode 用。冇提供就讀環境變數 CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID。 */
+  cloudflare?: CloudflareCredentials;
 }
 
 export class FetchError extends Error {
@@ -86,12 +93,53 @@ async function fetchPdf(url: string, timeoutMs: number): Promise<FetchResult> {
   });
 }
 
-// 未實作，但保持同其他 render_mode 一致嘅 async 簽名。
-async function fetchJs(url: string): Promise<FetchResult> {
-  throw new FetchError(
-    'render_mode "js" 需要 Cloudflare Browser Rendering API（CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID），呢個環境未設定，未實作',
-    url,
-  );
+function resolveCloudflareCredentials(provided?: CloudflareCredentials): CloudflareCredentials | null {
+  const apiToken = provided?.apiToken ?? process.env.CLOUDFLARE_API_TOKEN;
+  const accountId = provided?.accountId ?? process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (!apiToken || !accountId) return null;
+  return { apiToken, accountId };
+}
+
+interface BrowserRenderingResponse {
+  success: boolean;
+  result?: string;
+  errors?: Array<{ message: string }>;
+}
+
+async function fetchJs(url: string, timeoutMs: number, provided?: CloudflareCredentials): Promise<FetchResult> {
+  const credentials = resolveCloudflareCredentials(provided);
+  if (credentials === null) {
+    throw new FetchError(
+      'render_mode "js" 需要 Cloudflare Browser Rendering API 憑證（CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID），未設定',
+      url,
+    );
+  }
+
+  return withTimeout(url, timeoutMs, async (signal) => {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${credentials.accountId}/browser-rendering/content`,
+      {
+        method: 'POST',
+        signal,
+        headers: {
+          Authorization: `Bearer ${credentials.apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      },
+    );
+    if (!response.ok) {
+      throw new FetchError(`HTTP ${response.status}`, url);
+    }
+
+    const data = (await response.json()) as BrowserRenderingResponse;
+    if (!data.success || data.result === undefined) {
+      const message = data.errors?.map((e) => e.message).join('; ') ?? '未知錯誤';
+      throw new FetchError(`Cloudflare Browser Rendering API 回傳失敗：${message}`, url);
+    }
+
+    return { content: data.result, status: response.status, fetchedAt: new Date().toISOString() };
+  });
 }
 
 export async function fetchSource(
@@ -106,6 +154,6 @@ export async function fetchSource(
     case 'pdf':
       return fetchPdf(url, timeoutMs);
     case 'js':
-      return fetchJs(url);
+      return fetchJs(url, timeoutMs, options.cloudflare);
   }
 }

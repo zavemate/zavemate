@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { FetchError, fetchSource } from '../fetch.ts';
 
+// 本地開發用 .env 入面嘅 CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID（如果有）。
+// CI 用 GitHub Actions secrets 直接注入 process.env，唔靠呢個檔。
+try {
+  process.loadEnvFile();
+} catch {
+  // 冇 .env 就算，唔阻住其他 render_mode 嘅 test。
+}
+
 /**
  * 呢個檔案係 integration test（Phase 1 acceptance 明文要求「三種 render_mode
  * 各有一個 integration test」）——真係打網絡，唔係 mock。用 example.com（穩定、
@@ -11,6 +19,7 @@ import { FetchError, fetchSource } from '../fetch.ts';
  * script + vitest project 設定，而家未做，一齊行喺 npm test 入面。
  */
 const SC_SMART_TNC_PDF = 'https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf';
+const hasCloudflareCredentials = Boolean(process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID);
 
 describe('fetchSource（html）', () => {
   it('攞到真實網頁', async () => {
@@ -39,7 +48,22 @@ describe('fetchSource（pdf）', () => {
 });
 
 describe('fetchSource（js）', () => {
-  it('未有 Cloudflare Browser Rendering 資源 → 拋清晰嘅 FetchError', async () => {
-    await expect(fetchSource('https://example.com/', 'js')).rejects.toThrow(/Cloudflare/);
+  it('冇 Cloudflare 憑證 → 拋清晰嘅 FetchError（唔理環境有冇設定，明確傳 undefined 憑證）', async () => {
+    await expect(
+      fetchSource('https://example.com/', 'js', { cloudflare: { apiToken: '', accountId: '' } }),
+    ).rejects.toThrow(/Cloudflare/);
   });
+
+  it.skipIf(!hasCloudflareCredentials)('用 Cloudflare Browser Rendering API 攞到已經行完 JS 嘅 HTML', async () => {
+    const result = await fetchSource('https://example.com/', 'js');
+    expect(result.status).toBe(200);
+    expect(result.content).toContain('Example Domain');
+  }, 30_000);
+
+  if (!hasCloudflareCredentials) {
+    it('冇 CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID，真實 Browser Rendering test 已 skip', () => {
+      console.warn('冇搵到 Cloudflare 憑證，fetchSource(url, "js") 嘅真實 integration test 已 skip。');
+      expect(true).toBe(true);
+    });
+  }
 });

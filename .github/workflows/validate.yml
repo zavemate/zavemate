@@ -39,5 +39,11 @@ jobs:
       - name: validate data
         run: npm run validate:data
 
+      # fetchSource(url, 'js') integration test 要呢兩個先行得，pull_request
+      # 嚟自 fork 嗰陣 secrets 唔會傳過去——test 本身已經 skipIf 冇憑證，唔會累
+      # CI fail，淨係嗰條 test 會 skip。
       - name: test
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm test
