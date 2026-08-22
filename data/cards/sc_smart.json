@@ -28,7 +28,7 @@
         "pool_id": "sc_smart_designated_cap",
         "shared_with": [],
         "unit": "spend",
-        "value": 5000
+        "value": 10000
       },
       "effective_from": null,
       "effective_to": null,
