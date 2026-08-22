@@ -42,6 +42,13 @@ export function createDeepSeekProvider(apiKey: string, model = 'deepseek-chat'):
             { role: 'user', content: userContent },
           ],
           response_format: { type: 'json_object' },
+          // DeepSeek 個 default temperature 係 1.0。頭兩次真跑（PR #13 同 #17）
+          // 見到同一份 PDF 兩次跑俾出唔同判斷：hsbc_red_base 由「搵唔到」變
+          // 「official」，sc_smart_designated 由「official」變「unconfirmed」。
+          // 我哋要嘅係條款抽取，唔係創作——同一份 T&C 應該永遠得同一個答案。
+          // （溫度 0 唔等於 100% deterministic，但可以將呢種彈飛壓到最低；
+          //  confidence 逐個星期彈嘅話，對外嘅 provenance 就冇意義。）
+          temperature: 0,
         }),
       });
 
