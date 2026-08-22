@@ -56,7 +56,19 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   const openPRImpl = options.openPRFn ?? openPR;
 
   const cards = options.cards ?? loadActiveCards();
-  const cardsById = new Map(cards.map((c) => [c.card_id, c]));
+  /** 原始版本，淨係俾 evaluateGate 做「舊 vs 新」對比用，成個 run 都唔會變。 */
+  const originalCards = new Map(cards.map((c) => [c.card_id, c]));
+  /**
+   * applyWork 讀嘅版本，逐個 source 累積落去。
+   *
+   * 唔可以次次都由 originalCards clone：一張卡嘅 rule 可以分散喺幾個 source_url
+   * （例如 hsbc_everymile 兩條 rule 出自兩份唔同 PDF），咁樣第二個 source 嗰份
+   * clone 就會冇咗第一個 source 改過嘅嘢，最後 set 落 mergedCards 直接覆蓋——
+   * PR body 會照樣寫「核實過」，但條 rule 嘅 last_verified_at 同新 content_hash
+   * 靜靜咁唔見咗。後果係嗰條 rule 永遠顯示過期，而且每次跑都要重新餵 LLM，
+   * 永遠短路唔到。
+   */
+  const workingCards = new Map(originalCards);
   const work = selectWork(cards, options.targetRuleCount ?? 25);
 
   const emptyResult: Agent1RunResult = {
@@ -93,8 +105,11 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
       for (const usage of outcome.usage) totalCostUsd += usage.costUsd;
     }
 
-    const result = applyWork(cardsById, sourceWork, outcome, nowIso);
-    for (const [cardId, card] of result.updatedCards) mergedCards.set(cardId, card);
+    const result = applyWork(workingCards, sourceWork, outcome, nowIso);
+    for (const [cardId, card] of result.updatedCards) {
+      workingCards.set(cardId, card); // 下個 source 要喺呢個版本上面繼續改
+      mergedCards.set(cardId, card);
+    }
     allNotes.push(...result.notes);
     for (const source of result.brokenSources) allBroken.add(source);
     allAttention.push(...result.attentionNeeded);
@@ -109,7 +124,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
 
   const gateResults = new Map<string, GateResult>();
   for (const [cardId, newCard] of mergedCards) {
-    gateResults.set(cardId, evaluateGate(cardsById.get(cardId) ?? null, newCard));
+    gateResults.set(cardId, evaluateGate(originalCards.get(cardId) ?? null, newCard));
   }
   const gatePassed = [...gateResults.values()].every((g) => g.passed);
 

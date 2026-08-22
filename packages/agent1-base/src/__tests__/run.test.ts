@@ -190,6 +190,44 @@ describe('runAgent1', () => {
     expect(capturedParams!.body).toContain('2026-08-24');
   });
 
+  it('一張卡嘅 rule 分散喺兩個 source_url → 兩個 source 嘅更新都要保住', async () => {
+    // 迴歸測試：以前 applyWork 每次都由原始卡 clone，第二個 source 會覆蓋第一個
+    // source 改過嘅嘢（真實個案：hsbc_everymile 兩條 rule 出自兩份 PDF，PR #27
+    // 入面 hsbc_everymile_designated 明明「核實過」但一個欄位都冇更新）。
+    //
+    // 兩個 URL 都係一定 connection refused 嘅 localhost port：applyWork 走
+    // fetch_failed 路徑一樣會 set last_checked_at，足夠驗到「兩個 source 嘅
+    // 更新有冇都保住」，而且唔使掂外網（唔會拖慢、唔會 flaky）。
+    const twoSourceCard = card({
+      card_id: 'two_source_card',
+      rewards: [
+        rewardRule({ rule_id: 'rule_a', provenance: provenance({ source_url: 'http://127.0.0.1:9/a' }) }),
+        rewardRule({ rule_id: 'rule_b', provenance: provenance({ source_url: 'http://127.0.0.1:9/b' }) }),
+      ],
+    });
+
+    let captured: Array<{ path: string; content: string }> | undefined;
+    await runAgent1({
+      provider: fakeProvider, // 唔會用到，fetch 一定失敗
+      githubToken: 'fake-token',
+      cards: [twoSourceCard],
+      now: NOW,
+      openPRFn: async (params) => {
+        captured = params.files;
+        return { number: 4, url: 'https://github.com/zavemate/zavemate/pull/4', branchName: params.branchName };
+      },
+    });
+
+    expect(captured).toHaveLength(1);
+    const written = JSON.parse(captured![0]!.content);
+    const byId = Object.fromEntries(written.rewards.map((r: { rule_id: string }) => [r.rule_id, r]));
+    // 兩條都要更新過，唔可以淨係得第二個 source 嗰條。
+    expect(byId.rule_a.provenance.last_checked_at).toBe(NOW.toISOString());
+    expect(byId.rule_b.provenance.last_checked_at).toBe(NOW.toISOString());
+    expect(byId.rule_a.provenance.check_fail_count).toBe(1);
+    expect(byId.rule_b.provenance.check_fail_count).toBe(1);
+  });
+
   it('冇任何 rule（新卡都冇）→ 唔開 PR', async () => {
     const result = await runAgent1({
       provider: fakeProvider,
