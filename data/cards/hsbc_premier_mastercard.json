@@ -39,10 +39,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "06e92327d7431d0ae503ff8838d1f3420a2bf6ee224799a4a5b9a6a12d97440c",
+        "content_hash": "907ecd897181b0d79322dc9c201d7acff55714f1f4639b5ab65aeb7cadbeb2fb",
         "evidence_excerpt": "you earn $1 RewardCash for every HK$250 spent with your eligible card denominated in Hong Kong dollar (0.4%); Every $1 RewardCash equals to HK$1 at RewardCash e-Shop.",
-        "last_checked_at": "2026-08-21T04:00:00.000Z",
-        "last_verified_at": "2026-08-21T04:00:00.000Z",
+        "last_checked_at": "2026-08-22T00:14:41.074Z",
+        "last_verified_at": "2026-08-22T00:14:41.074Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
       },
       "registration_url": null,
