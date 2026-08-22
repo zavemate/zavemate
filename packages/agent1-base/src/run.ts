@@ -32,6 +32,21 @@ export interface Agent1RunResult {
   brokenSources: string[];
 }
 
+/**
+ * PR 標題／branch name 用嘅香港日期。
+ *
+ * 唔可以直接 `nowIso.slice(0, 10)`：cron 係 04:00 HKT 跑，即係 20:00 UTC 前一日，
+ * 所以 UTC 日期永遠落後香港一日——2026-08-24（星期一）跑出嚟嘅 PR 會叫
+ * `agent1/2026-08-23`，同「逢星期一跑」對唔上，睇 PR list 嗰陣好易數錯週期。
+ *
+ * 淨係影響俾人睇嘅 label。JSON 入面嘅 last_checked_at / last_verified_at 一律
+ * 保持 UTC ISO instant，唔好跟住改——嗰啲係機器讀嘅時間點，唔係日曆日期。
+ */
+export function hongKongDate(now: Date): string {
+  // en-CA 個 date format 就係 YYYY-MM-DD。
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hong_Kong' }).format(now);
+}
+
 /** §6.4 Agent 1 成個流程：scan → pipeline（逐個 source）→ apply → evaluateGate → openPR。 */
 export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunResult> {
   const now = options.now ?? new Date();
@@ -103,7 +118,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
     content: canonicalStringify(card as unknown as JsonValue),
   }));
 
-  const dateStr = nowIso.slice(0, 10);
+  const dateStr = hongKongDate(now);
   const bodyParts = [`**自動核實 —— ${dateStr}**`, '', '### 改動', ...allNotes.map((n) => `- ${n}`)];
   if (allAttention.length > 0) {
     bodyParts.push('', '### ⚠️ 需要人手覆核', ...allAttention.map((n) => `- ${n}`));

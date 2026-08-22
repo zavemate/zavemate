@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LLMProvider } from '../llm.ts';
-import { runAgent1 } from '../run.ts';
+import { hongKongDate, runAgent1 } from '../run.ts';
 import { card, provenance, rewardRule } from './fixtures.ts';
 
 const NOW = new Date('2026-08-22T00:00:00.000Z');
@@ -27,6 +27,24 @@ const fakeProvider: LLMProvider = {
     };
   },
 };
+
+describe('hongKongDate', () => {
+  it('cron 04:00 HKT（= 20:00 UTC 前一日）要俾到星期一嗰日，唔係前一日', () => {
+    // 2026-08-24 係星期一。cron 喺 2026-08-23T20:00Z 跑。
+    expect(hongKongDate(new Date('2026-08-23T20:00:00.000Z'))).toBe('2026-08-24');
+  });
+
+  it('UTC 日頭跑，HK 已經係同一日下晝', () => {
+    expect(hongKongDate(new Date('2026-08-22T00:00:00.000Z'))).toBe('2026-08-22');
+  });
+
+  it('HK 半夜前一刻仍然算前一日', () => {
+    // 2026-08-22T15:59:59Z = 2026-08-22 23:59:59 HKT
+    expect(hongKongDate(new Date('2026-08-22T15:59:59.000Z'))).toBe('2026-08-22');
+    // 再過一秒就跨日
+    expect(hongKongDate(new Date('2026-08-22T16:00:00.000Z'))).toBe('2026-08-23');
+  });
+});
 
 describe('runAgent1', () => {
   it('有改動 → 開 PR，帶正確 title/branch/labels/body', async () => {
@@ -150,6 +168,26 @@ describe('runAgent1', () => {
     expect(result.gatePassed).toBe(true);
     expect(result.changed).toBe(0);
     expect(capturedLabels).toContain('needs-review');
+  });
+
+  it('cron 時間（20:00 UTC 星期日）跑 → branch name 同 PR body 用香港嗰日（星期一）', async () => {
+    let capturedParams: { branchName: string; body: string } | undefined;
+    await runAgent1({
+      provider: fakeProvider,
+      githubToken: 'fake-token',
+      cards: [
+        card({
+          rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })],
+        }),
+      ],
+      now: new Date('2026-08-23T20:00:00.000Z'), // = 2026-08-24 04:00 HKT，星期一
+      openPRFn: async (params) => {
+        capturedParams = params;
+        return { number: 3, url: 'https://github.com/zavemate/zavemate/pull/3', branchName: params.branchName };
+      },
+    });
+    expect(capturedParams!.branchName).toBe('agent1/2026-08-24');
+    expect(capturedParams!.body).toContain('2026-08-24');
   });
 
   it('冇任何 rule（新卡都冇）→ 唔開 PR', async () => {
