@@ -106,6 +106,52 @@ describe('runAgent1', () => {
     expect(capturedLabels).toContain('needs-review');
   });
 
+  it('gate 全過但有 attentionNeeded → 一樣要標 needs-review', async () => {
+    // found=false：數值根本冇郁，所以 gate 冇嘢可以冧，但正正最需要人手睇。
+    const notFoundProvider: LLMProvider = {
+      name: 'not-found',
+      async extractJson() {
+        return {
+          data: {
+            rules: [
+              {
+                rule_id: 'demo_card_online',
+                found: false,
+                reward: null,
+                cap_value: null,
+                cap_unit: null,
+                effective_from: null,
+                confidence: 'unconfirmed',
+                evidence_excerpt: null,
+              },
+            ],
+          },
+          usage: { tokensIn: 100, tokensOut: 20, costUsd: 0.001, model: 'fake' },
+        };
+      },
+    };
+
+    let capturedLabels: string[] | undefined;
+    const result = await runAgent1({
+      provider: notFoundProvider,
+      githubToken: 'fake-token',
+      cards: [
+        card({
+          rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })],
+        }),
+      ],
+      now: NOW,
+      openPRFn: async (params) => {
+        capturedLabels = params.labels;
+        return { number: 2, url: 'https://github.com/zavemate/zavemate/pull/2', branchName: params.branchName };
+      },
+    });
+
+    expect(result.gatePassed).toBe(true);
+    expect(result.changed).toBe(0);
+    expect(capturedLabels).toContain('needs-review');
+  });
+
   it('冇任何 rule（新卡都冇）→ 唔開 PR', async () => {
     const result = await runAgent1({
       provider: fakeProvider,

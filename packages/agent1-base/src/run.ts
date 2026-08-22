@@ -117,8 +117,12 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   );
   bodyParts.push('', '### 成本', `- 總 LLM cost：$${totalCostUsd.toFixed(4)}`);
 
+  // attentionNeeded 一樣要標 needs-review：gate 全過唔代表唔使人手睇——
+  // 「頁面搵唔到呢條 rule」「疑似排期生效」呢啲數值根本冇郁，gate 冇嘢可以
+  // 冧，但正正就係最需要人手覆核嘅情況。淨係睇 gatePassed 嘅話，呢種 PR
+  // 表面睇落乾淨，人就會順手 merge。
   const labels: string[] = [];
-  if (!gatePassed) labels.push('needs-review');
+  if (!gatePassed || allAttention.length > 0) labels.push('needs-review');
   if (allBroken.size > 0) labels.push('broken-source');
 
   const pr = await openPRImpl({
