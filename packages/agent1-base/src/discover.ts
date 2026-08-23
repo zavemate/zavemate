@@ -42,6 +42,24 @@ export function extractPdfLinks(html: string, pageUrl: string): string[] {
   return [...urls].sort();
 }
 
+
+/**
+ * HSBC 同一份文件有中英兩版：/content/dam/hsbc/hk/docs/... （英）同
+ * /content/dam/hsbc/hk/tc/docs/...（中）。
+ *
+ * 關鍵係：邊個版本抽到文字係**逐份唔同**，冇規律。實測：
+ *   hsbc-credit-card-terms.pdf        英 44,894 字 ✅ ／ 中 774 字 ⚠️
+ *   offers/welcome-terms-and-conditions.pdf  英 135 字 ⚠️ ／ 中 3,472 字 ✅
+ * 完全相反。所以唔可以「一律用中文版」或者「一律用英文版」，要逐份試。
+ */
+export function languageVariants(url: string): string[] {
+  const TC = '/content/dam/hsbc/hk/tc/docs/';
+  const EN = '/content/dam/hsbc/hk/docs/';
+  if (url.includes(TC)) return [url.replace(TC, EN)];
+  if (url.includes(EN)) return [url.replace(EN, TC)];
+  return [];
+}
+
 export async function inspectSource(url: string): Promise<DiscoveredSource> {
   const base: DiscoveredSource = {
     url,
@@ -90,6 +108,16 @@ export async function discoverSources(pageUrl: string, renderMode: RenderMode = 
   }
   const links = extractPdfLinks(page.content, pageUrl);
   const results: DiscoveredSource[] = [];
-  for (const link of links) results.push(await inspectSource(link)); // 逐個嚟，唔好一次過轟死銀行個站
+  for (const link of links) {
+    const found = await inspectSource(link); // 逐個嚟，唔好一次過轟死銀行個站
+    results.push(found);
+    // 抽唔到文字先試另一個語言版本——多數時候另一版有文字層。
+    if (found.tooThin) {
+      for (const variant of languageVariants(link)) {
+        const alt = await inspectSource(variant);
+        if (alt.error === null) results.push(alt);
+      }
+    }
+  }
   return results;
 }

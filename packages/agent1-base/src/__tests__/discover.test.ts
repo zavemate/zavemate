@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractPdfLinks } from '../discover.ts';
+import { extractPdfLinks, languageVariants } from '../discover.ts';
 
 const PAGE = 'https://www.hsbc.com.hk/credit-cards/products/red/';
 
@@ -29,5 +29,23 @@ describe('extractPdfLinks', () => {
   it('砌唔到 URL 嘅 link 唔會拉冧成個 discovery', () => {
     const html = '<a href="ht!tp://bad url/x.pdf">bad</a><a href="/good.pdf">good</a>';
     expect(extractPdfLinks(html, PAGE)).toContain('https://www.hsbc.com.hk/good.pdf');
+  });
+});
+
+describe('languageVariants', () => {
+  it('中文版 → 英文版', () => {
+    expect(languageVariants('https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/x.pdf')).toEqual([
+      'https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/x.pdf',
+    ]);
+  });
+
+  it('英文版 → 中文版', () => {
+    expect(languageVariants('https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/x.pdf')).toEqual([
+      'https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/x.pdf',
+    ]);
+  });
+
+  it('唔係 HSBC 嗰個路徑格式就冇 variant（例如渣打）', () => {
+    expect(languageVariants('https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf')).toEqual([]);
   });
 });
