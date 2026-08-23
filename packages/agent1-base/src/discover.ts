@@ -60,6 +60,18 @@ export function languageVariants(url: string): string[] {
   return [];
 }
 
+/** 渣打個 CDN (av.sc.com / sc.com/global/av) 間唔中會 connection timeout，一次過跑十幾份必中幾份。 */
+async function retry<T>(run: () => Promise<T>, attempts = 3): Promise<T> {
+  for (let i = 1; ; i++) {
+    try {
+      return await run();
+    } catch (error) {
+      if (i >= attempts) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1500 * i));
+    }
+  }
+}
+
 export async function inspectSource(url: string): Promise<DiscoveredSource> {
   const base: DiscoveredSource = {
     url,
@@ -73,7 +85,7 @@ export async function inspectSource(url: string): Promise<DiscoveredSource> {
   };
 
   try {
-    const head = await headSource(url);
+    const head = await retry(() => headSource(url));
     base.lastModified = head.lastModified;
     base.etag = head.etag;
     base.contentLength = head.contentLength;
@@ -83,7 +95,7 @@ export async function inspectSource(url: string): Promise<DiscoveredSource> {
   }
 
   try {
-    const text = extractMainContent((await fetchSource(url, 'pdf')).content);
+    const text = extractMainContent((await retry(() => fetchSource(url, 'pdf'))).content);
     const assessment = assessExtraction(text);
     base.chars = assessment.chars;
     base.pages = assessment.pages;
