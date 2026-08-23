@@ -28,6 +28,21 @@ const fakeProvider: LLMProvider = {
   },
 };
 
+
+/** 唔打網嘅 pipeline：直接俾一個 extracted outcome，內容由 provider 決定。 */
+function stubPipeline(): NonNullable<Parameters<typeof runAgent1>[0]['runPipelineFn']> {
+  return async (input) => {
+    const llm = await input.provider.extractJson({ systemPrompt: JSON.stringify(input.knownRules), userContent: '' });
+    return {
+      kind: 'extracted',
+      contentHash: 'stub-hash',
+      fetchedAt: NOW.toISOString(),
+      result: llm.data as never,
+      usage: [llm.usage],
+    };
+  };
+}
+
 describe('hongKongDate', () => {
   it('cron 04:00 HKT（= 20:00 UTC 前一日）要俾到星期一嗰日，唔係前一日', () => {
     // 2026-08-24 係星期一。cron 喺 2026-08-23T20:00Z 跑。
@@ -61,6 +76,7 @@ describe('runAgent1', () => {
       githubToken: 'fake-token',
       cards,
       now: NOW,
+      runPipelineFn: stubPipeline(),
       openPRFn: async (params) => {
         capturedParams = params;
         return { number: 42, url: 'https://github.com/zavemate/zavemate/pull/42', branchName: params.branchName };
@@ -108,6 +124,7 @@ describe('runAgent1', () => {
     const result = await runAgent1({
       provider: jumpProvider,
       githubToken: 'fake-token',
+      runPipelineFn: stubPipeline(),
       cards: [
         card({
           rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })],
@@ -153,6 +170,7 @@ describe('runAgent1', () => {
     const result = await runAgent1({
       provider: notFoundProvider,
       githubToken: 'fake-token',
+      runPipelineFn: stubPipeline(),
       cards: [
         card({
           rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })],
@@ -181,6 +199,7 @@ describe('runAgent1', () => {
         }),
       ],
       now: new Date('2026-08-23T20:00:00.000Z'), // = 2026-08-24 04:00 HKT，星期一
+      runPipelineFn: stubPipeline(),
       openPRFn: async (params) => {
         capturedParams = params;
         return { number: 3, url: 'https://github.com/zavemate/zavemate/pull/3', branchName: params.branchName };

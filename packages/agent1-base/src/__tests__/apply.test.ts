@@ -48,6 +48,29 @@ describe('applyWork（fetch_failed）', () => {
   });
 });
 
+describe('applyWork（extraction_too_thin）', () => {
+  const thin = { kind: 'extraction_too_thin' as const, reason: '4 頁但只抽到 101 個字元', chars: 101, pages: 4 };
+
+  it('當讀唔到處理：唔郁數值、唔郁 confidence、唔郁 last_verified_at', () => {
+    const result = applyWork(cardsById(), makeWork(), thin, NOW);
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.reward.rate).toBe(0.04);
+    expect(rule.provenance.confidence).toBe('official');
+    expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇郁
+    expect(rule.provenance.last_checked_at).toBe(NOW);
+    expect(rule.provenance.check_fail_count).toBe(1);
+    expect(result.attentionNeeded.length).toBeGreaterThan(0);
+  });
+
+  it('連續第 3 次抽唔到 → broken-source', () => {
+    const cards = new Map([
+      ['demo_card', card({ rewards: [rewardRule({ provenance: provenance({ check_fail_count: 2 }) })] })],
+    ]);
+    const result = applyWork(cards, makeWork(), thin, NOW);
+    expect(result.brokenSources).toContain('https://x.com/page');
+  });
+});
+
 describe('applyWork（unchanged）', () => {
   it('更新 last_checked_at 同 last_verified_at，check_fail_count 歸零', () => {
     const cards = new Map([

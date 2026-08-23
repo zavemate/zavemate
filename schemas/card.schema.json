@@ -464,6 +464,75 @@
             "type": "object"
           },
           "type": "array"
+        },
+        "sources": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "etag": {
+                "default": null,
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "is_authoritative": {
+                "default": true,
+                "type": "boolean"
+              },
+              "language": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "en",
+                      "zh"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
+              "last_modified": {
+                "default": null,
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "purpose": {
+                "enum": [
+                  "scheme",
+                  "programme_base",
+                  "merchant_list",
+                  "card_terms",
+                  "kfs",
+                  "card_index",
+                  "product_page"
+                ],
+                "type": "string"
+              },
+              "url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "url",
+              "purpose",
+              "note"
+            ],
+            "type": "object"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -476,6 +545,7 @@
         "annual_fee_waiver_note",
         "fx_fee_rate",
         "eligibility",
+        "sources",
         "rewards",
         "provenance"
       ],

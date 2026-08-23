@@ -16,7 +16,8 @@
     "fmt:check": "tsx packages/schema/src/cli/fmt.ts --check",
     "validate": "npm run typecheck && npm run fmt:check && npm run schema:check && tsx packages/schema/src/cli/validate.ts && npm run test",
     "validate:data": "tsx packages/schema/src/cli/validate.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "discover": "tsx packages/agent1-base/src/discover-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

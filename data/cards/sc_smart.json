@@ -154,5 +154,14 @@
         "period": "month"
       }
     }
+  ],
+  "sources": [
+    {
+      "is_authoritative": true,
+      "language": null,
+      "note": null,
+      "purpose": "scheme",
+      "url": "https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf"
+    }
   ]
 }

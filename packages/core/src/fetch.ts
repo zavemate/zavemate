@@ -157,3 +157,37 @@ export async function fetchSource(
       return fetchJs(url, timeoutMs, options.cloudflare);
   }
 }
+
+export interface SourceValidators {
+  /** HTTP Last-Modified，原樣保留（RFC 1123）。冇就 null。 */
+  lastModified: string | null;
+  /** HTTP ETag。渣打 (av.sc.com) 有，HSBC 冇。 */
+  etag: string | null;
+  contentLength: number | null;
+  status: number;
+}
+
+/**
+ * 淨係攞 header，唔落載成份文件。
+ *
+ * 用途：一份條款 PDF 動輒 200KB–1.1MB，而每星期真正要問嘅問題係「份文件變咗未」。
+ * Last-Modified / ETag 係伺服器權威噉答呢條問題，成本近乎零。
+ *
+ * 但佢唔可以取代 content_hash：CMS 重新發佈、CDN 重新上傳，日期會跳但 bytes
+ * 一模一樣。所以分工係——validator 答「使唔使落載」，hash 答「使唔使餵 LLM」。
+ */
+export async function headSource(url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<SourceValidators> {
+  return withTimeout(url, timeoutMs, async (signal) => {
+    const response = await fetch(url, { method: 'HEAD', redirect: 'follow', signal });
+    if (!response.ok) {
+      throw new FetchError(`HTTP ${response.status}`, url);
+    }
+    const length = response.headers.get('content-length');
+    return {
+      lastModified: response.headers.get('last-modified'),
+      etag: response.headers.get('etag'),
+      contentLength: length === null ? null : Number(length),
+      status: response.status,
+    };
+  });
+}

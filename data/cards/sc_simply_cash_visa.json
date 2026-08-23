@@ -94,5 +94,14 @@
       "rule_id": "sc_simply_cash_visa_overseas",
       "tier": null
     }
+  ],
+  "sources": [
+    {
+      "is_authoritative": true,
+      "language": null,
+      "note": null,
+      "purpose": "scheme",
+      "url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+    }
   ]
 }
