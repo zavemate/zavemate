@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractPdfLinks, languageVariants } from '../discover.ts';
+import { extractCardPageLinks, extractPdfLinks, languageVariants } from '../discover.ts';
 
 const PAGE = 'https://www.hsbc.com.hk/credit-cards/products/red/';
 
@@ -47,5 +47,32 @@ describe('languageVariants', () => {
 
   it('唔係 HSBC 嗰個路徑格式就冇 variant（例如渣打）', () => {
     expect(languageVariants('https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf')).toEqual([]);
+  });
+});
+
+describe('extractCardPageLinks', () => {
+  const HUB = 'https://www.sc.com/hk/credit-cards/';
+
+  it('攞同一個 origin 嘅卡相關頁面，剝走 #fragment 同 query', () => {
+    const html = `<a href="/hk/credit-cards/smart/#apply">Smart</a><a href="/hk/credit-cards/cathay/?utm=x">Cathay</a>`;
+    expect(extractCardPageLinks(html, HUB)).toEqual([
+      'https://www.sc.com/hk/credit-cards/cathay/',
+      'https://www.sc.com/hk/credit-cards/smart/',
+    ]);
+  });
+
+  it('重複斜線當成同一版', () => {
+    const html = `<a href="//www.sc.com//hk//credit-cards//">hub</a><a href="/hk/credit-cards/">hub again</a>`;
+    expect(extractCardPageLinks(html, HUB)).toEqual(['https://www.sc.com/hk/credit-cards/']);
+  });
+
+  it('唔收外站 link', () => {
+    const html = '<a href="https://other-bank.com/credit-cards/x/">別間銀行</a>';
+    expect(extractCardPageLinks(html, HUB)).toEqual([]);
+  });
+
+  it('唔收 PDF 同靜態資源', () => {
+    const html = '<a href="/hk/credit-cards/tnc.pdf">T&C</a><img src="/hk/credit-cards/hero.jpg">';
+    expect(extractCardPageLinks(html, HUB)).toEqual([]);
   });
 });

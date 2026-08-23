@@ -94,6 +94,49 @@ export async function inspectSource(url: string): Promise<DiscoveredSource> {
   return base;
 }
 
+
+/**
+ * 由一間銀行嘅信用卡 hub 頁，攞晒佢 link 出去嘅卡相關頁面。
+ *
+ * 呢個係 discovery 嘅第一層：banks 自己嗰版總覽頁就係權威嘅卡清單。
+ * 由佢入手先答到「我哋收齊晒呢間銀行幾多張卡」——實測 HSBC 嗰版
+ * (https://www.hsbc.com.hk/zh-hk/credit-cards/) 列出 9 張消費卡，
+ * 而 repo 入面只有 3 張。冇呢一層，欠幾多張卡係睇唔出嚟嘅。
+ *
+ * 同 extractPdfLinks 一樣：只負責搵，唔負責判斷邊條係產品頁——URL 命名
+ * 每間銀行都唔同，寧願列多啲俾人揀，好過靜靜咁漏。
+ */
+export function extractCardPageLinks(html: string, hubUrl: string): string[] {
+  const origin = new URL(hubUrl).origin;
+  const urls = new Set<string>();
+  for (const match of html.matchAll(/["']([^"'\s]*credit-card[^"'\s]*)["']/gi)) {
+    let resolved: URL;
+    try {
+      resolved = new URL(match[1]!, hubUrl);
+    } catch {
+      continue;
+    }
+    if (resolved.origin !== origin) continue;
+    if (/\.(pdf|jpe?g|png|svg|gif|css|js|woff2?)$/i.test(resolved.pathname)) continue;
+    resolved.hash = '';
+    resolved.search = '';
+    // 有啲頁面砌 link 會出現 //hk//credit-cards//，同正常路徑係同一版。
+    resolved.pathname = resolved.pathname.replace(/\/{2,}/g, '/');
+    urls.add(resolved.toString());
+  }
+  return [...urls].sort();
+}
+
+export async function discoverCardPages(hubUrl: string, renderMode: RenderMode = 'js'): Promise<string[]> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return extractCardPageLinks((await fetchSource(hubUrl, renderMode)).content, hubUrl);
+    } catch (error) {
+      if (attempt >= 3) throw error;
+    }
+  }
+}
+
 export async function discoverSources(pageUrl: string, renderMode: RenderMode = 'js'): Promise<DiscoveredSource[]> {
   // HSBC 啲產品頁行 JS 行得好慢，Browser Rendering 間唔中會 timeout 或者 429。
   // 呢個係一次性嘅人手工具，重試好過叫人自己再撳一次。
