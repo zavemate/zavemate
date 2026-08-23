@@ -60,14 +60,18 @@ export function languageVariants(url: string): string[] {
   return [];
 }
 
-/** 渣打個 CDN (av.sc.com / sc.com/global/av) 間唔中會 connection timeout，一次過跑十幾份必中幾份。 */
-async function retry<T>(run: () => Promise<T>, attempts = 3): Promise<T> {
+/**
+ * fetchSource / headSource 本身已經有 per-host 限速（見 core/fetch.ts），所以
+ * 呢度淨係補一次重試應付偶發嘅 connection reset——唔好狂 retry，重試打得太密
+ * 只會令限流更嚴重。
+ */
+async function retry<T>(run: () => Promise<T>, attempts = 2): Promise<T> {
   for (let i = 1; ; i++) {
     try {
       return await run();
     } catch (error) {
       if (i >= attempts) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 1500 * i));
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
     }
   }
 }

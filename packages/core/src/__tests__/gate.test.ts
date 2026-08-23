@@ -196,6 +196,34 @@ describe('evaluateGate', () => {
     });
   });
 
+  describe('confidence_upgraded', () => {
+    it('unconfirmed 升做 official（數值完全冇變）→ 中', () => {
+      // PR #66 嘅真實情況：hsbc_everymile_general 靜靜咁由 unconfirmed 升做
+      // official，因為數值冇變，其他 GateReason 一條都唔中，PR 表面全綠。
+      const oldCard = card({
+        rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })],
+      });
+      const newCard = card({
+        rewards: [rewardRule({ provenance: { ...provenance, confidence: 'official' } })],
+      });
+      const result = evaluateGate(oldCard, newCard, NOW);
+      expect(result.reasons).toContain('confidence_upgraded');
+      expect(result.passed).toBe(false);
+    });
+
+    it('official 降做 unconfirmed → 唔中（收緊主張唔使審）', () => {
+      const oldCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'official' } })] });
+      const newCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })] });
+      const result = evaluateGate(oldCard, newCard, NOW);
+      expect(result.reasons).not.toContain('confidence_upgraded');
+    });
+
+    it('一直都係 official → 唔中', () => {
+      const result = evaluateGate(card(), card(), NOW);
+      expect(result.reasons).not.toContain('confidence_upgraded');
+    });
+  });
+
   describe('official_conflict', () => {
     it('content_hash 冇變但 official 數值變咗 → 中', () => {
       const oldCard = card();

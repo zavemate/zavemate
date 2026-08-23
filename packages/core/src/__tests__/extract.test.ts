@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assessExtraction, extractMainContent } from '../extract.ts';
+import { assessExtraction, evidenceSupportedBy, extractMainContent } from '../extract.ts';
 import { sha256 } from '../hash.ts';
 
 // 兩個「同一份條款、唔同時間抓」嘅版本：nav/footer/時間戳/廣告唔同，
@@ -113,5 +113,34 @@ describe('assessExtraction', () => {
   it('頁數少但內容足夠 → 唔算薄', () => {
     const text = 'x'.repeat(3000) + ' -- 1 of 2 --';
     expect(assessExtraction(text).tooThin).toBe(false);
+  });
+});
+
+describe('evidenceSupportedBy', () => {
+  const source = '持卡人憑本卡於指定商戶簽賬可享\n8% 「獎賞錢」回贈，每月上限港幣 100 元。';
+
+  it('原文節錄搵得返 → true', () => {
+    expect(evidenceSupportedBy(source, '於指定商戶簽賬可享 8%「獎賞錢」回贈')).toBe(true);
+  });
+
+  it('PDF 抽文字插咗斷行都要當搵到（比對前剝晒空白）', () => {
+    expect(evidenceSupportedBy('港幣 2 元簽賬 = 1 飛行里\n數', '港幣 2 元簽賬 = 1 飛行里數')).toBe(true);
+  });
+
+  it('全形半形括號當同一個字', () => {
+    expect(evidenceSupportedBy('享 8%（獎賞錢）回贈之簽賬', '享 8%(獎賞錢)回贈之簽賬')).toBe(true);
+  });
+
+  it('自己寫嘅說明而唔係原文 → false', () => {
+    // hsbc_everymile_general 嘅真實 evidence 就係咁：一段推算說明，唔係引句。
+    expect(evidenceSupportedBy(source, '推算：base rate 0.4% × 20 里換算率，即 HK$12.5 = 1 里')).toBe(false);
+  });
+
+  it('冇 evidence → false', () => {
+    expect(evidenceSupportedBy(source, null)).toBe(false);
+  });
+
+  it('太短嘅片段唔算證據（隨便都撞到）', () => {
+    expect(evidenceSupportedBy(source, '8%')).toBe(false);
   });
 });

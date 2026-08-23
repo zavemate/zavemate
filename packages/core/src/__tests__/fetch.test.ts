@@ -40,11 +40,11 @@ describe('fetchSource（html）', () => {
 });
 
 describe('fetchSource（pdf）', () => {
-  it('落載 PDF 並且抽到文字', async () => {
+  it('落載 PDF 並且抽到文字', { timeout: 30_000 }, async () => {
     const result = await fetchSource(SC_SMART_TNC_PDF, 'pdf');
     expect(result.status).toBe(200);
     expect(result.content).toContain('Standard Chartered Smart Credit Card Terms');
-  }, 30_000);
+  });
 });
 
 describe('fetchSource（js）', () => {

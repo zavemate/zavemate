@@ -14,6 +14,7 @@ export type GateReason =
   | 'structure_change' // tier 數目變 / 新增 rule_id / 刪 rule_id / reward.type 變
   | 'first_rule' // 呢張卡第一次出現（冇歷史可以比較）
   | 'official_conflict' // content_hash 冇變，但 confidence 仍係 official 嘅數值變咗
+  | 'confidence_upgraded' // confidence 由 unconfirmed/crowdsourced 升做 official
   | 'source_moved' // source_url 嘅 host 變咗
   | 'future_effective' // effective_from > today + 7d
   | 'card_deactivated'; // active: true → false
@@ -169,6 +170,23 @@ export function evaluateGate(oldCard: Card | null, newCard: Card, now: Date = ne
             `rule "${ruleId}" 嘅有效回贈率變化 ${ratio.toFixed(2)}x（超出 ${RATE_JUMP_LOWER.toFixed(2)}–${RATE_JUMP_UPPER} 嘅合理範圍）`,
           );
         }
+      }
+
+      // confidence_upgraded
+      //
+      // 升做 official 係一個「主張加強」——由「我唔肯定」變成「官方確認」。呢個
+      // 應該同改數值一樣受審查，但因為數值可以完全冇變，其他 GateReason 一條都
+      // 唔會中，PR 表面睇落全綠。
+      //
+      // 真實個案（PR #66）：hsbc_everymile_general 由 unconfirmed 升做 official，
+      // gate 全過、冇 label，但佢個 evidence_excerpt 自己寫住「呢個係推算值⋯⋯故
+      // confidence 定 unconfirmed」，而個數值本身亦係錯（label 講「一般合資格簽賬」
+      // 但官方比率表嗰個類別係 HK$5 = 1 里，唔係 HK$12.5）。
+      if (oldRule.provenance.confidence !== 'official' && newRule.provenance.confidence === 'official') {
+        addReason(
+          'confidence_upgraded',
+          `rule "${ruleId}" 嘅 confidence 由 "${oldRule.provenance.confidence}" 升做 "official"——主張加強咗，要人手確認個出處真係撐得住`,
+        );
       }
 
       // cap_unit_changed / cap_drop

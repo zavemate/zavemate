@@ -6,6 +6,20 @@ import { card, provenance, rewardRule } from './fixtures.ts';
 
 const NOW = '2026-08-22T00:00:00.000Z';
 
+/**
+ * 假嘅「份文件原文」。applyWork 而家會驗 evidence_excerpt 撐唔撐得住——
+ * 每句測試用嘅 evidence 都要喺呢度出現，否則會被降做 unconfirmed。
+ */
+const SOURCE = [
+  '本卡網上簽賬回贈 4%，其他簽賬另計。',
+  '由 2026 年 12 月 1 日起，網上簽賬回贈 4% 變咗 3.8%。',
+  '網上簽賬回贈 3.8%（2026 年 12 月 1 日起生效）。',
+  '網上簽賬回贈每月上限 $10,000。',
+  '本行公布：上限降至 $8,000。',
+  '4% 回贈適用於指定類別。',
+].join('\n');
+
+
 function makeWork(overrides: Partial<SourceWork> = {}): SourceWork {
   return {
     sourceUrl: 'https://x.com/page',
@@ -108,6 +122,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -141,6 +156,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -171,6 +187,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -201,6 +218,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -234,6 +252,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -264,6 +283,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -294,6 +314,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -301,6 +322,42 @@ describe('applyWork（extracted）', () => {
     expect(rule.reward.rate).toBe(0.04); // 冇改
     expect(rule.provenance.confidence).toBe('unconfirmed');
     expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇改
+  });
+
+  it('LLM 話 official 但 evidence 喺份文件搵唔返 → 降做 unconfirmed，唔郁數值', () => {
+    const result = applyWork(
+      cardsById(),
+      makeWork(),
+      {
+        kind: 'extracted',
+        contentHash: 'new-hash',
+        fetchedAt: NOW,
+        result: {
+          rules: [
+            {
+              rule_id: 'demo_card_online',
+              found: true,
+              reward: { type: 'cash_rebate', rate: 0.06, points_per_hkd: null, hkd_per_mile: null },
+              cap_value: null,
+              cap_unit: null,
+              effective_from: null,
+              confidence: 'official',
+              // 一段自己寫嘅說明，唔係原文節錄——SOURCE 入面搵唔返。
+              evidence_excerpt: '推算：base rate 乘換算率得出 6%，唔係官方直接寫明',
+            },
+          ],
+        },
+        usage: [],
+        mainContent: SOURCE,
+      },
+      NOW,
+    );
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.reward.rate).toBe(0.04); // 冇改
+    expect(rule.provenance.confidence).toBe('unconfirmed');
+    expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇郁
+    expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 4%'); // 舊嗰句留返
+    expect(result.attentionNeeded.some((n) => n.includes('evidence_excerpt'))).toBe(true);
   });
 
   it('found=false → 唔改數值，出 attentionNeeded', () => {
@@ -326,6 +383,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -335,7 +393,7 @@ describe('applyWork（extracted）', () => {
   });
 
   it('LLM 冇提到已知 rule_id → attentionNeeded，唔改數值', () => {
-    const result = applyWork(cardsById(), makeWork(), { kind: 'extracted', contentHash: 'new-hash', fetchedAt: NOW, result: { rules: [] }, usage: [] }, NOW);
+    const result = applyWork(cardsById(), makeWork(), { kind: 'extracted', contentHash: 'new-hash', fetchedAt: NOW, result: { rules: [] }, usage: [], mainContent: SOURCE }, NOW);
     const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
     expect(rule.reward.rate).toBe(0.04);
     expect(result.attentionNeeded.length).toBeGreaterThan(0);
@@ -364,6 +422,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -395,6 +454,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -426,6 +486,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );
@@ -469,6 +530,7 @@ describe('applyWork（extracted）', () => {
           ],
         },
         usage: [],
+        mainContent: SOURCE,
       },
       NOW,
     );

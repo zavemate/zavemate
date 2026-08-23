@@ -39,6 +39,8 @@ function stubPipeline(): NonNullable<Parameters<typeof runAgent1>[0]['runPipelin
       fetchedAt: NOW.toISOString(),
       result: llm.data as never,
       usage: [llm.usage],
+      // applyWork 會驗 evidence 撐唔撐得住，所以段假原文要包含 fixture 用嘅句子。
+      mainContent: '本卡網上簽賬回贈 4%。網上簽賬回贈 3.8%。所有合資格簽賬享 20% 現金回贈。',
     };
   };
 }
@@ -111,7 +113,7 @@ describe('runAgent1', () => {
                 cap_unit: null,
                 effective_from: null,
                 confidence: 'official',
-                evidence_excerpt: '回贈率 20%',
+                evidence_excerpt: '所有合資格簽賬享 20% 現金回贈',
               },
             ],
           },
