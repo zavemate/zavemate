@@ -1,3 +1,4 @@
+import { evidenceSupportedBy } from '@zavemate/core';
 import type { Card } from '@zavemate/schema';
 import type { PipelineOutcome } from './pipeline.ts';
 import type { SourceWork } from './scan.ts';
@@ -122,7 +123,11 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
         // 數值冇郁，所以舊 evidence 一樣支持得住同一個數字——淨係喺本身冇
         // evidence 嘅時候先補上，唔覆寫。「讀到但睇唔清」正正就係最唔應該
         // 用 LLM 嘅節錄換走人手寫嘅說明嗰種情況。
-        if (extracted.evidence_excerpt && r.provenance.evidence_excerpt === null) {
+        if (
+          extracted.evidence_excerpt &&
+          r.provenance.evidence_excerpt === null &&
+          evidenceSupportedBy(outcome.mainContent, extracted.evidence_excerpt)
+        ) {
           r.provenance.evidence_excerpt = extracted.evidence_excerpt;
         }
         // 故意唔郁 last_verified_at、唔郁數值（§6.2：讀到但睇唔清）。
@@ -139,6 +144,28 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
       });
       attentionNeeded.push(
         `${workRule.cardId}/${workRule.rule_id}：抽到 effective_from = ${extracted.effective_from}，可能係排期生效嘅新條款——冇自動處理（要開新 rule 同舊 rule 並存，呢個係結構性決定），數值未變`,
+      );
+      continue;
+    }
+
+    // evidence 一定要喺份文件入面搵得返，否則唔可以話自己肯定。
+    //
+    // evidence_excerpt 應該係原文節錄，唔係我哋自己寫嘅說明。審計揭到 12 條 rule
+    // 有 6 條對唔上出處，其中 4 條標住 official——包括一條 evidence 寫住「呢個係
+    // 推算值，唔係官方單一句直接寫明，故 confidence 定 unconfirmed」，後來仲被自動
+    // 升做 official。個數值可能係啱，但我哋撐唔住，咁就唔可以扮肯定。
+    const existingExcerpt = cardsById.get(workRule.cardId)?.rewards.find((r) => r.rule_id === workRule.rule_id)
+      ?.provenance.evidence_excerpt ?? null;
+    const excerptToUse = extracted.evidence_excerpt ?? existingExcerpt;
+    if (!evidenceSupportedBy(outcome.mainContent, excerptToUse)) {
+      patchRule(workRule.cardId, workRule.rule_id, (r) => {
+        r.provenance.check_fail_count = 0;
+        r.provenance.last_checked_at = now;
+        r.provenance.confidence = 'unconfirmed';
+        // 唔郁數值、唔郁 last_verified_at、唔郁 evidence——留返原樣俾人睇。
+      });
+      attentionNeeded.push(
+        `${workRule.cardId}/${workRule.rule_id}：LLM 話 official，但 evidence_excerpt 喺份文件入面逐字搵唔返（可能係我哋自己寫嘅說明而唔係原文節錄）——降做 unconfirmed，數值未變`,
       );
       continue;
     }

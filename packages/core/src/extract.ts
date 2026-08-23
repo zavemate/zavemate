@@ -110,3 +110,25 @@ export function assessExtraction(text: string): ExtractionAssessment {
   }
   return { tooThin: false, chars, pages, reason: null };
 }
+
+/**
+ * evidence_excerpt 係咪真係喺份文件入面搵到。
+ *
+ * 呢個係 provenance 嘅最低要求：`evidence_excerpt` 應該係**原文節錄**，唔係
+ * 我哋自己寫嘅說明。一次審計揭到 12 條 rule 有 6 條對唔上出處，其中 4 條標住
+ * official——包括一條 evidence 寫住「呢個係推算值，唔係官方單一句直接寫明」
+ * 嘅 rule，後來仲被自動升做 official。
+ *
+ * 比對前將空白完全剝走：PDF 抽文字會喺詞中間插斷行（「1 飛行里 數」），全形
+ * 括號同半形亦要當同一個字，否則逐字比對會誤判。
+ */
+export function normalizeForEvidence(text: string): string {
+  return text.replace(/\s+/g, '').replace(/[「」『』（）()]/g, '');
+}
+
+export function evidenceSupportedBy(sourceText: string, excerpt: string | null): boolean {
+  if (excerpt === null) return false;
+  const needle = normalizeForEvidence(excerpt);
+  if (needle.length < 8) return false; // 太短嘅片段隨便都撞到，唔算證據
+  return normalizeForEvidence(sourceText).includes(needle);
+}

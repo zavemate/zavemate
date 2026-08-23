@@ -83,7 +83,7 @@ describe('runPipeline（hash 短路，唔使真 LLM）', () => {
 });
 
 describe.skipIf(!deepSeekKey)('runPipeline（integration，真係打 DeepSeek）', () => {
-  it('對真實渣打 Simply Cash 官網頁面抽到啱嘅回贈率', async () => {
+  it('對真實渣打 Simply Cash 官網頁面抽到啱嘅回贈率', { timeout: 60_000 }, async () => {
     const provider = createDeepSeekProvider(deepSeekKey!);
 
     const outcome = await runPipeline({
@@ -116,7 +116,7 @@ describe.skipIf(!deepSeekKey)('runPipeline（integration，真係打 DeepSeek）
 
     expect(outcome.usage.length).toBeGreaterThan(0);
     expect(outcome.usage[0]!.costUsd).toBeGreaterThan(0);
-  }, 60_000);
+  });
 });
 
 if (!deepSeekKey) {

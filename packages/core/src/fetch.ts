@@ -43,11 +43,40 @@ export class FetchError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 
+/**
+ * 同一個 host 之間至少隔幾耐先打下一次。
+ *
+ * 銀行啲站有限流：連續／並行打 av.sc.com 會隨機回 connection timeout。之前
+ * 靠重試頂，但重試係即刻連發，撞返同一個限流窗口，等於雪上加霜——而且真正
+ * 嘅問題係我哋打得太密，唔係打得唔夠多次。
+ *
+ * 呢個 throttle 擺喺 fetch 呢一層，所以 integration test、discover 工具、
+ * 同埋 Agent 1 真跑全部一齊受惠，唔使逐個 call site 記得加。
+ */
+const HOST_MIN_INTERVAL_MS = 1_200;
+const hostQueue = new Map<string, Promise<void>>();
+
+function throttle(url: string): Promise<void> {
+  let host: string;
+  try {
+    host = new URL(url).host;
+  } catch {
+    return Promise.resolve();
+  }
+  const previous = hostQueue.get(host) ?? Promise.resolve();
+  hostQueue.set(
+    host,
+    previous.then(() => new Promise<void>((resolve) => setTimeout(resolve, HOST_MIN_INTERVAL_MS))),
+  );
+  return previous;
+}
+
 async function withTimeout<T>(
   url: string,
   timeoutMs: number,
   run: (signal: AbortSignal) => Promise<T>,
 ): Promise<T> {
+  await throttle(url);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

@@ -25,7 +25,15 @@ export type PipelineOutcome =
   /** 抓到嘢但抽唔到文字（例如圖片型 PDF）——當讀唔到處理，唔好攞嚟餵 LLM。 */
   | { kind: 'extraction_too_thin'; reason: string; chars: number; pages: number | null }
   | { kind: 'unchanged'; contentHash: string; fetchedAt: string }
-  | { kind: 'extracted'; contentHash: string; fetchedAt: string; result: ExtractionResult; usage: LLMUsage[] };
+  | {
+      kind: 'extracted';
+      contentHash: string;
+      fetchedAt: string;
+      result: ExtractionResult;
+      usage: LLMUsage[];
+      /** 抽取到嘅原文，俾 applyWork 驗返 evidence_excerpt 撐唔撐得住。 */
+      mainContent: string;
+    };
 
 export async function runPipeline(input: PipelineInput): Promise<PipelineOutcome> {
   let fetchResult;
@@ -75,5 +83,5 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineOutcome
     throw new LLMError(`LLM 回覆連升級 provider 都唔符合 schema：${parsed.error.message}`);
   }
 
-  return { kind: 'extracted', contentHash, fetchedAt: fetchResult.fetchedAt, result: parsed.data, usage };
+  return { kind: 'extracted', contentHash, fetchedAt: fetchResult.fetchedAt, result: parsed.data, usage, mainContent };
 }
