@@ -86,10 +86,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": null,
+        "content_hash": "67e3ad2bbb94069f82e6c17f836154cea4ad76ae73f8e7612eb2f90dd0c1ce47",
         "evidence_excerpt": "港幣 2 元簽賬 = 1 飛行里數",
-        "last_checked_at": null,
-        "last_verified_at": null,
+        "last_checked_at": "2026-08-23T20:53:24.889Z",
+        "last_verified_at": "2026-08-23T20:53:24.889Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
       },
       "registration_url": null,
@@ -122,7 +122,7 @@
         "confidence": "unconfirmed",
         "content_hash": "907ecd897181b0d79322dc9c201d7acff55714f1f4639b5ab65aeb7cadbeb2fb",
         "evidence_excerpt": "推算：RewardCash Programme base rate「every HK$250 spent = $1 RewardCash」（0.4%） × EveryMile 一頁紙嘅「1 RewardCash to 20 miles」preferential conversion rate = 8% cash-equivalent，即 HK$12.5 = 1 里。呢個係推算值，唔係官方單一句直接寫明，故 confidence 定 unconfirmed。",
-        "last_checked_at": "2026-08-22T00:14:41.074Z",
+        "last_checked_at": "2026-08-23T20:53:24.889Z",
         "last_verified_at": "2026-08-21T04:00:00.000Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
       },
@@ -140,22 +140,28 @@
   ],
   "sources": [
     {
+      "etag": null,
       "is_authoritative": false,
       "language": "zh",
+      "last_modified": null,
       "note": "完整比率表：指定日常及旅遊消費 HK$2=1里、本地及海外簽賬 HK$5=1里、其他指定簽賬 HK$12.5=1里。推廣期 2026-07-01 至 2026-12-31，逐期續期。",
       "purpose": "scheme",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
     },
     {
+      "etag": null,
       "is_authoritative": true,
       "language": null,
+      "last_modified": null,
       "note": "淨係列指定商戶名單，冇任何回贈率。1.1MB 但只抽到約 2,900 字。之前錯誤咁攞咗佢做回贈率出處。",
       "purpose": "merchant_list",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
     },
     {
+      "etag": null,
       "is_authoritative": true,
       "language": "en",
+      "last_modified": null,
       "note": "RewardCash Programme 通用條款，成個計劃嘅地板。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
