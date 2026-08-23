@@ -49,7 +49,7 @@ export function card(overrides: Record<string, unknown> = {}): Record<string, un
     fx_fee_rate: 0.0195,
     eligibility: { min_relationship_balance: null, note: null },
     active: true,
-    sources: [{ url: provenance.source_url, purpose: 'scheme' as const, note: null }],
+    sources: [{ url: provenance.source_url, purpose: 'scheme' as const, note: null, last_modified: null, etag: null }],
     rewards: [rewardRule()],
     provenance,
     ...overrides,

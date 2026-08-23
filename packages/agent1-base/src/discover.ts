@@ -1,0 +1,95 @@
+import { assessExtraction, extractMainContent, FetchError, fetchSource, headSource, type RenderMode } from '@zavemate/core';
+
+/**
+ * 由一張卡嘅官網頁面，爬返佢 link 出去嘅全部 PDF。
+ *
+ * 點解要有呢一步：Phase 0 嘅 source_url 係人手一條條填落 rule 度嘅，冇任何
+ * 機制答到「呢張卡啲條款收齊咗未」。實際後果係 hsbc_everymile 攞咗份商戶名單
+ * 當回贈率出處、hsbc_red 淨係指住通用計劃條款——兩張卡真正嘅獎賞計劃 PDF
+ * 從來冇入過 repo。
+ *
+ * 而銀行自己個產品頁就係權威嘅清單：條款 PDF 一定係由嗰度 link 出去。
+ * 所以拎齊嘅正確做法唔係估 URL，係爬個頁。
+ *
+ * 呢個工具**唔會**自動判斷邊份係咩用途——purpose 要人手打，因為分
+ * 「scheme vs programme_base vs merchant_list」要讀完份文件先講得準，
+ * 而呢個判斷正正就係之前錯到最緊要嗰度。工具只負責搵齊 + 量度。
+ */
+export interface DiscoveredSource {
+  url: string;
+  lastModified: string | null;
+  etag: string | null;
+  contentLength: number | null;
+  /** 抽到幾多字元。null = 攞唔到／抽唔到。 */
+  chars: number | null;
+  pages: number | null;
+  /** true = 抽取太薄（多數係圖片型 PDF），呢份文件冇得自動核實。 */
+  tooThin: boolean;
+  error: string | null;
+}
+
+const PDF_LINK = /["'(]([^"'()\s]*\.pdf)(?:[?#][^"'()\s]*)?/gi;
+
+export function extractPdfLinks(html: string, pageUrl: string): string[] {
+  const urls = new Set<string>();
+  for (const match of html.matchAll(PDF_LINK)) {
+    try {
+      urls.add(new URL(match[1]!, pageUrl).toString());
+    } catch {
+      // 砌唔到 URL 就跳過，唔好因為一條爛 link 拉冧成個 discovery。
+    }
+  }
+  return [...urls].sort();
+}
+
+export async function inspectSource(url: string): Promise<DiscoveredSource> {
+  const base: DiscoveredSource = {
+    url,
+    lastModified: null,
+    etag: null,
+    contentLength: null,
+    chars: null,
+    pages: null,
+    tooThin: false,
+    error: null,
+  };
+
+  try {
+    const head = await headSource(url);
+    base.lastModified = head.lastModified;
+    base.etag = head.etag;
+    base.contentLength = head.contentLength;
+  } catch (error) {
+    base.error = error instanceof FetchError ? error.message : String(error);
+    return base;
+  }
+
+  try {
+    const text = extractMainContent((await fetchSource(url, 'pdf')).content);
+    const assessment = assessExtraction(text);
+    base.chars = assessment.chars;
+    base.pages = assessment.pages;
+    base.tooThin = assessment.tooThin;
+  } catch (error) {
+    base.error = error instanceof FetchError ? error.message : String(error);
+  }
+  return base;
+}
+
+export async function discoverSources(pageUrl: string, renderMode: RenderMode = 'js'): Promise<DiscoveredSource[]> {
+  // HSBC 啲產品頁行 JS 行得好慢，Browser Rendering 間唔中會 timeout 或者 429。
+  // 呢個係一次性嘅人手工具，重試好過叫人自己再撳一次。
+  let page;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      page = await fetchSource(pageUrl, renderMode);
+      break;
+    } catch (error) {
+      if (attempt >= 3) throw error;
+    }
+  }
+  const links = extractPdfLinks(page.content, pageUrl);
+  const results: DiscoveredSource[] = [];
+  for (const link of links) results.push(await inspectSource(link)); // 逐個嚟，唔好一次過轟死銀行個站
+  return results;
+}

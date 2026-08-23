@@ -153,6 +153,16 @@ export const CardSource = z.strictObject({
   purpose: SourcePurpose,
   /** 點解收呢份、或者佢有咩限制（例如：圖片型 PDF，抽唔到文字）。 */
   note: z.string().nullable(),
+  /**
+   * 上次見到嘅 HTTP Last-Modified（原樣保留）。下次 check 就有基準可比。
+   *
+   * 呢個係「使唔使落載」嘅答案，唔係「使唔使餵 LLM」——CMS 重新發佈、CDN
+   * 重新上傳，日期會跳但內容一模一樣。所以佢唔取代 provenance.content_hash，
+   * 兩者答緊唔同問題。
+   */
+  last_modified: z.string().nullable().default(null),
+  /** 上次見到嘅 ETag。渣打 (av.sc.com) 有俾，HSBC 冇。 */
+  etag: z.string().nullable().default(null),
 });
 export type CardSource = z.infer<typeof CardSource>;
 

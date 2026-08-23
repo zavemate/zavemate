@@ -219,14 +219,14 @@ describe('RewardRule', () => {
 });
 
 describe('Card.sources[]（來源覆蓋率）', () => {
-  const scheme = (url: string) => ({ url, purpose: 'scheme' as const, note: null });
+  const scheme = (url: string) => ({ url, purpose: 'scheme' as const, note: null, last_modified: null, etag: null });
 
   it('冇任何 purpose "scheme" 嘅文件 → rule 唔可以標 official', () => {
     // hsbc_red / hsbc_premier_mastercard 嘅真實情況：得一份通用計劃條款。
     expect(() =>
       Card.parse(
         card({
-          sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null }],
+          sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null }],
         }),
       ),
     ).toThrow(/scheme/);
@@ -235,7 +235,7 @@ describe('Card.sources[]（來源覆蓋率）', () => {
   it('冇 scheme 文件但全部 rule 標 unconfirmed → 通過（唔肯定係正確答案）', () => {
     const parsed = Card.parse(
       card({
-        sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null }],
+        sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null }],
         rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })],
       }),
     );
@@ -245,13 +245,13 @@ describe('Card.sources[]（來源覆蓋率）', () => {
   it('official 唔可以攞 merchant_list 做出處', () => {
     // hsbc_everymile_designated 嘅真實情況：指住份商戶名單但標 official。
     expect(() =>
-      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'merchant_list', note: null }] })),
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'merchant_list', note: null, last_modified: null, etag: null }] })),
     ).toThrow(/merchant_list/);
   });
 
   it('official 唔可以攞 product_page 做出處', () => {
     expect(() =>
-      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'product_page', note: null }] })),
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'product_page', note: null, last_modified: null, etag: null }] })),
     ).toThrow(/product_page/);
   });
 
@@ -272,8 +272,8 @@ describe('Card.sources[]（來源覆蓋率）', () => {
       card({
         sources: [
           scheme(provenance.source_url),
-          { url: 'https://www.example-bank.com.hk/merchants.pdf', purpose: 'merchant_list', note: '指定商戶名單' },
-          { url: 'https://www.example-bank.com.hk/kfs.pdf', purpose: 'kfs', note: null },
+          { url: 'https://www.example-bank.com.hk/merchants.pdf', purpose: 'merchant_list', note: '指定商戶名單', last_modified: null, etag: null },
+          { url: 'https://www.example-bank.com.hk/kfs.pdf', purpose: 'kfs', note: null, last_modified: null, etag: null },
         ],
       }),
     );
