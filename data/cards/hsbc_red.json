@@ -60,22 +60,37 @@
   "sources": [
     {
       "etag": null,
+      "is_authoritative": false,
+      "language": "zh",
       "last_modified": "Fri, 10 Jul 2026 02:13:06 GMT",
       "note": "滙豐 Red 信用卡獎賞計劃之條款及細則。**要用中文版**——英文版 /docs/ 係圖片型（4 頁 101 字元），中文版 /tc/docs/ 5 頁 4,204 字元抽得到。推廣期 2026-07-01 至 2026-12-31。指定商戶 8%（首 HK$1,250/月）、網上簽賬 4%（首 HK$10,000/月），兩者已記做 promotion。",
       "purpose": "scheme",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
     },
     {
+      "is_authoritative": true,
+      "language": "en",
       "note": "同上。產品頁「4%」出現 9 次但我哋一條 rule 都冇，scheme 條款未搵到（候選 reward-scheme-terms-and-conditions.pdf 係圖片型 PDF，4 頁只抽到 101 字元）。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
     },
     {
       "etag": null,
+      "is_authoritative": true,
+      "language": "en",
       "last_modified": "Tue, 23 Dec 2025 09:10:45 GMT",
       "note": "銀行自己列嘅適用條款目錄。明確列住「Terms and Conditions for HSBC Red Credit Card Reward Scheme」，證實呢張卡有卡專屬獎賞計劃。",
       "purpose": "card_index",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/red/important-information.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": true,
+      "language": "en",
+      "last_modified": "Fri, 10 Jul 2026 02:12:56 GMT",
+      "note": "法律上為準嘅英文版，但係圖片型 PDF（4 頁 101 字元），抽唔到文字。收喺度係為咗監察佢有冇改——數值由中文版抽。",
+      "purpose": "scheme",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
     }
   ]
 }

@@ -47,7 +47,7 @@ export function card(overrides: Partial<Card> = {}): Card {
     fx_fee_rate: 0.0195,
     eligibility: { min_relationship_balance: null, note: null },
     active: true,
-    sources: [{ url: 'https://www.example-bank.com.hk/cards/demo', purpose: 'scheme', note: null, last_modified: null, etag: null }],
+    sources: [{ url: 'https://www.example-bank.com.hk/cards/demo', purpose: 'scheme', note: null, last_modified: null, etag: null, language: null, is_authoritative: true }],
     rewards: [rewardRule()],
     provenance,
     ...overrides,

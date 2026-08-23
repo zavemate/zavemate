@@ -219,14 +219,14 @@ describe('RewardRule', () => {
 });
 
 describe('Card.sources[]（來源覆蓋率）', () => {
-  const scheme = (url: string) => ({ url, purpose: 'scheme' as const, note: null, last_modified: null, etag: null });
+  const scheme = (url: string) => ({ url, purpose: 'scheme' as const, note: null, last_modified: null, etag: null, language: null, is_authoritative: true });
 
   it('冇任何 purpose "scheme" 嘅文件 → rule 唔可以標 official', () => {
     // hsbc_red / hsbc_premier_mastercard 嘅真實情況：得一份通用計劃條款。
     expect(() =>
       Card.parse(
         card({
-          sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null }],
+          sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null, language: null, is_authoritative: true }],
         }),
       ),
     ).toThrow(/scheme/);
@@ -238,7 +238,7 @@ describe('Card.sources[]（來源覆蓋率）', () => {
     const parsed = Card.parse(
       card({
         sources: [
-          { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null },
+          { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null, language: null, is_authoritative: true },
           {
             url: 'https://www.example-bank.com.hk/cards/demo/important-information.pdf',
             purpose: 'card_index',
@@ -257,7 +257,7 @@ describe('Card.sources[]（來源覆蓋率）', () => {
       Card.parse(
         card({
           sources: [
-            { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null },
+            { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null, language: null, is_authoritative: true },
           ],
         }),
       ),
@@ -267,7 +267,7 @@ describe('Card.sources[]（來源覆蓋率）', () => {
   it('冇 scheme 文件但全部 rule 標 unconfirmed → 通過（唔肯定係正確答案）', () => {
     const parsed = Card.parse(
       card({
-        sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null }],
+        sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null, language: null, is_authoritative: true }],
         rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })],
       }),
     );
@@ -277,13 +277,13 @@ describe('Card.sources[]（來源覆蓋率）', () => {
   it('official 唔可以攞 merchant_list 做出處', () => {
     // hsbc_everymile_designated 嘅真實情況：指住份商戶名單但標 official。
     expect(() =>
-      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'merchant_list', note: null, last_modified: null, etag: null }] })),
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'merchant_list', note: null, last_modified: null, etag: null, language: null, is_authoritative: true }] })),
     ).toThrow(/merchant_list/);
   });
 
   it('official 唔可以攞 product_page 做出處', () => {
     expect(() =>
-      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'product_page', note: null, last_modified: null, etag: null }] })),
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'product_page', note: null, last_modified: null, etag: null, language: null, is_authoritative: true }] })),
     ).toThrow(/product_page/);
   });
 
@@ -299,13 +299,38 @@ describe('Card.sources[]（來源覆蓋率）', () => {
     ).toThrow(/重複/);
   });
 
+  it('引用非權威語言版本 → 一定要收埋同一 purpose 嘅權威版', () => {
+    // hsbc_red 嘅真實情況：數值由中文版抽（英文版係圖片），但法律以英文版為準。
+    expect(() =>
+      Card.parse(
+        card({
+          sources: [
+            { url: provenance.source_url, purpose: 'scheme', note: null, last_modified: null, etag: null, language: 'zh', is_authoritative: false },
+          ],
+        }),
+      ),
+    ).toThrow(/權威版/);
+  });
+
+  it('非權威版 + 權威版一齊收 → 通過', () => {
+    const parsed = Card.parse(
+      card({
+        sources: [
+          { url: provenance.source_url, purpose: 'scheme', note: null, last_modified: null, etag: null, language: 'zh', is_authoritative: false },
+          { url: 'https://www.example-bank.com.hk/cards/demo-en.pdf', purpose: 'scheme', note: '英文版，圖片型', last_modified: null, etag: null, language: 'en', is_authoritative: true },
+        ],
+      }),
+    );
+    expect(parsed.sources.filter((s) => s.is_authoritative)).toHaveLength(1);
+  });
+
   it('一張卡可以有多份文件，各自標用途', () => {
     const parsed = Card.parse(
       card({
         sources: [
           scheme(provenance.source_url),
-          { url: 'https://www.example-bank.com.hk/merchants.pdf', purpose: 'merchant_list', note: '指定商戶名單', last_modified: null, etag: null },
-          { url: 'https://www.example-bank.com.hk/kfs.pdf', purpose: 'kfs', note: null, last_modified: null, etag: null },
+          { url: 'https://www.example-bank.com.hk/merchants.pdf', purpose: 'merchant_list', note: '指定商戶名單', last_modified: null, etag: null, language: null, is_authoritative: true },
+          { url: 'https://www.example-bank.com.hk/kfs.pdf', purpose: 'kfs', note: null, last_modified: null, etag: null, language: null, is_authoritative: true },
         ],
       }),
     );

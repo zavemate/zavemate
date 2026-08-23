@@ -476,6 +476,25 @@
                   "null"
                 ]
               },
+              "is_authoritative": {
+                "default": true,
+                "type": "boolean"
+              },
+              "language": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "en",
+                      "zh"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
               "last_modified": {
                 "default": null,
                 "type": [

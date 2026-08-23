@@ -140,26 +140,43 @@
   ],
   "sources": [
     {
+      "is_authoritative": false,
+      "language": "zh",
       "note": "完整比率表：指定日常及旅遊消費 HK$2=1里、本地及海外簽賬 HK$5=1里、其他指定簽賬 HK$12.5=1里。推廣期 2026-07-01 至 2026-12-31，逐期續期。",
       "purpose": "scheme",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
     },
     {
+      "is_authoritative": true,
+      "language": null,
       "note": "淨係列指定商戶名單，冇任何回贈率。1.1MB 但只抽到約 2,900 字。之前錯誤咁攞咗佢做回贈率出處。",
       "purpose": "merchant_list",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
     },
     {
+      "is_authoritative": true,
+      "language": "en",
       "note": "RewardCash Programme 通用條款，成個計劃嘅地板。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
     },
     {
       "etag": null,
+      "is_authoritative": true,
+      "language": "en",
       "last_modified": "Wed, 24 Dec 2025 06:41:35 GMT",
       "note": "銀行自己列嘅適用條款目錄。",
       "purpose": "card_index",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/important-information.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": true,
+      "language": "en",
+      "last_modified": "Tue, 30 Jun 2026 07:51:18 GMT",
+      "note": "法律上為準嘅英文版，但係圖片型 PDF（3 頁 38 字元），抽唔到文字。收喺度係為咗監察佢有冇改——數值由中文版抽。",
+      "purpose": "scheme",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
     }
   ]
 }

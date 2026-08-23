@@ -173,6 +173,22 @@ export const CardSource = z.strictObject({
   last_modified: z.string().nullable().default(null),
   /** 上次見到嘅 ETag。渣打 (av.sc.com) 有俾，HSBC 冇。 */
   etag: z.string().nullable().default(null),
+  /**
+   * 呢份係邊個語言版本。null = 中英合體（渣打啲 T&C PDF 就係咁，一份文件
+   * 入面中英並列，/hk/zh/content/docs/ 同 /hk/content/docs/ 兩條路徑
+   * serve 緊同一個 file，hash 一模一樣）。
+   */
+  language: z.enum(['en', 'zh']).nullable().default(null),
+  /**
+   * 呢版係咪法律上為準嗰版。
+   *
+   * 點解要分：HSBC 啲條款寫明「中英文本如有歧義，概以英文本為準」，但英文版
+   * 好多時係圖片型 PDF（Red 個獎賞計劃：英文 101 字元、中文 4,204 字元）。
+   * 即係我哋**由非權威版本抽數字**。呢件事對一個賣 provenance 嘅產品唔可以
+   * 隱形——所以規則係：引用非權威版嘅 rule，同一個 purpose 嘅權威版都要收入
+   * sources[] 一齊監察。權威版改咗而抽取版未改（或者相反），我哋要知。
+   */
+  is_authoritative: z.boolean().default(true),
 });
 export type CardSource = z.infer<typeof CardSource>;
 
@@ -248,8 +264,27 @@ export const Card = CardBase.superRefine((card, ctx) => {
 
   checkSourceListed(card.provenance.source_url, ['provenance', 'source_url']);
 
+  const bySourceUrl = new Map(card.sources.map((source) => [source.url, source]));
+
   for (const [index, rule] of card.rewards.entries()) {
     const purpose = checkSourceListed(rule.provenance.source_url, ['rewards', index, 'provenance', 'source_url']);
+
+    // 由非權威語言版本抽數字係可以嘅（好多時權威版根本抽唔到文字），但一定要
+    // 連權威版一齊監察，否則權威版改咗我哋唔會知。
+    const cited = bySourceUrl.get(rule.provenance.source_url);
+    if (cited && !cited.is_authoritative) {
+      const hasAuthoritativeCounterpart = card.sources.some(
+        (source) => source.purpose === cited.purpose && source.is_authoritative,
+      );
+      if (!hasAuthoritativeCounterpart) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['rewards', index, 'provenance', 'source_url'],
+          message: `呢條 rule 引用緊非權威語言版本，但 sources[] 冇收埋同一個 purpose ("${cited.purpose}") 嘅權威版——權威版改咗就冇人知`,
+        });
+      }
+    }
+
     if (rule.provenance.confidence !== 'official') continue;
 
     // official 唔可以建基於「賺幾多」以外嘅文件。
