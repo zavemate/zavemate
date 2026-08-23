@@ -39,10 +39,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": null,
+        "content_hash": "907ecd897181b0d79322dc9c201d7acff55714f1f4639b5ab65aeb7cadbeb2fb",
         "evidence_excerpt": "you earn $1 RewardCash for every HK$250 spent with your eligible card denominated in Hong Kong dollar (0.4%); Every $1 RewardCash equals to HK$1 at RewardCash e-Shop.",
-        "last_checked_at": null,
-        "last_verified_at": null,
+        "last_checked_at": "2026-08-23T10:34:20.171Z",
+        "last_verified_at": "2026-08-23T10:34:20.171Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
       },
       "registration_url": null,
@@ -59,8 +59,10 @@
   ],
   "sources": [
     {
+      "etag": null,
       "is_authoritative": true,
       "language": "en",
+      "last_modified": null,
       "note": "只有計劃地板「每 HK$250 = $1 RewardCash」，原文寫明 Except as specified in Clause 5。搵唔到呢張卡自己嘅 scheme 條款。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
