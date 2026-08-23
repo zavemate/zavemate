@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractMainContent } from '../extract.ts';
+import { assessExtraction, extractMainContent } from '../extract.ts';
 import { sha256 } from '../hash.ts';
 
 // 兩個「同一份條款、唔同時間抓」嘅版本：nav/footer/時間戳/廣告唔同，
@@ -83,5 +83,35 @@ describe('extractMainContent', () => {
     const html = '<main><p>條款 A &amp; 條款 B 都適用，簽賬滿 &quot;HK$500&quot; 先合資格。</p></main>';
     const content = extractMainContent(html);
     expect(content).toContain('條款 A & 條款 B 都適用，簽賬滿 "HK$500" 先合資格。');
+  });
+});
+
+describe('assessExtraction', () => {
+  it('正常條款文件 → 唔算薄', () => {
+    const text = Array.from({ length: 40 }, (_, i) => `第 ${i} 條：合資格簽賬指附有正式交易紀錄之簽賬。`).join('\n');
+    expect(assessExtraction(text).tooThin).toBe(false);
+  });
+
+  it('全份得幾十個字元 → 當抽取失敗', () => {
+    const result = assessExtraction('PUBLIC -- 1 of 1 --');
+    expect(result.tooThin).toBe(true);
+    expect(result.reason).toContain('字元');
+  });
+
+  it('多頁但每頁平均字數低到不合理 → 當抽取失敗（圖片型 PDF）', () => {
+    // HSBC reward-scheme-terms-and-conditions.pdf 嘅真實形態：4 頁得 101 字元。
+    const text = 'PUBLIC iii) iv) ii) iii) -- 1 of 4 -- PUBLIC • • -- 2 of 4 -- PUBLIC -- 3 of 4 -- PUBLIC -- 4 of 4 --'.padEnd(
+      250,
+      ' x',
+    );
+    const result = assessExtraction(text);
+    expect(result.tooThin).toBe(true);
+    expect(result.pages).toBe(4);
+    expect(result.reason).toContain('圖片型');
+  });
+
+  it('頁數少但內容足夠 → 唔算薄', () => {
+    const text = 'x'.repeat(3000) + ' -- 1 of 2 --';
+    expect(assessExtraction(text).tooThin).toBe(false);
   });
 });

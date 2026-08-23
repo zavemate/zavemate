@@ -68,3 +68,45 @@ export function extractMainContent(html: string): string {
 
   return lines.join('\n');
 }
+
+/**
+ * 抽取結果薄到唔合理 = 抽取失敗，唔係「份文件冇嘢」。
+ *
+ * 真實個案：HSBC 嘅 reward-scheme-terms-and-conditions.pdf 有 4 頁，但
+ * extractMainContent 只抽到 101 個字元（圖片型 PDF，冇文字層）。pipeline
+ * 當時完全冇 flag，會將嗰 101 個字元當「份文件嘅內容」餵俾 LLM。
+ *
+ * 更惡劣嘅係：呢種失敗係穩定嘅。同一份圖片 PDF 每次抽都係同樣嗰 101 個字元，
+ * 所以 hash 對得上、pipeline 判 unchanged、applyWork 就會將 last_verified_at
+ * 更新做「而家」——一條從來冇人讀得到嘅 rule，每個星期都顯示啱啱核實過。
+ * 呢個正正係 CLAUDE.md 開頭嗰句「唔好靜靜錯」講緊嘅嘢。
+ */
+export const MIN_EXTRACTED_CHARS = 200;
+export const MIN_CHARS_PER_PAGE = 100;
+
+export interface ExtractionAssessment {
+  tooThin: boolean;
+  chars: number;
+  /** pdf-parse 會喺每頁尾加「-- 3 of 7 --」，攞到就用得。HTML 冇呢個概念。 */
+  pages: number | null;
+  reason: string | null;
+}
+
+export function assessExtraction(text: string): ExtractionAssessment {
+  const chars = text.length;
+  const pageMarkers = [...text.matchAll(/--\s*\d+\s+of\s+(\d+)\s*--/g)].map((m) => Number(m[1]));
+  const pages = pageMarkers.length > 0 ? Math.max(...pageMarkers) : null;
+
+  if (chars < MIN_EXTRACTED_CHARS) {
+    return { tooThin: true, chars, pages, reason: `全份只抽到 ${chars} 個字元（低過 ${MIN_EXTRACTED_CHARS}）` };
+  }
+  if (pages !== null && pages > 0 && chars / pages < MIN_CHARS_PER_PAGE) {
+    return {
+      tooThin: true,
+      chars,
+      pages,
+      reason: `${pages} 頁但只抽到 ${chars} 個字元（平均每頁 ${Math.round(chars / pages)}，低過 ${MIN_CHARS_PER_PAGE}）——大機會係圖片型 PDF，冇文字層`,
+    };
+  }
+  return { tooThin: false, chars, pages, reason: null };
+}

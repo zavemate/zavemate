@@ -1,4 +1,4 @@
-import { extractMainContent, FetchError, type RenderMode, fetchSource, sha256 } from '@zavemate/core';
+import { assessExtraction, extractMainContent, FetchError, type RenderMode, fetchSource, sha256 } from '@zavemate/core';
 import { buildSystemPrompt, ExtractionResult, type KnownRule } from './extraction.ts';
 import { LLMError, type LLMProvider, type LLMUsage } from './llm.ts';
 
@@ -22,6 +22,8 @@ export interface PipelineInput {
 
 export type PipelineOutcome =
   | { kind: 'fetch_failed'; error: FetchError }
+  /** 抓到嘢但抽唔到文字（例如圖片型 PDF）——當讀唔到處理，唔好攞嚟餵 LLM。 */
+  | { kind: 'extraction_too_thin'; reason: string; chars: number; pages: number | null }
   | { kind: 'unchanged'; contentHash: string; fetchedAt: string }
   | { kind: 'extracted'; contentHash: string; fetchedAt: string; result: ExtractionResult; usage: LLMUsage[] };
 
@@ -35,6 +37,20 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineOutcome
   }
 
   const mainContent = extractMainContent(fetchResult.content);
+
+  // 喺 hash 短路之前擋——唔係嘅話，穩定嘅抽取失敗（同一份圖片 PDF 每次都俾
+  // 同樣嗰幾十個字元）會 hash 對得上、判 unchanged，跟住將 last_verified_at
+  // 更新做「而家」。一條從來冇人讀得到嘅 rule 就會永遠顯示啱啱核實過。
+  const assessment = assessExtraction(mainContent);
+  if (assessment.tooThin) {
+    return {
+      kind: 'extraction_too_thin',
+      reason: assessment.reason!,
+      chars: assessment.chars,
+      pages: assessment.pages,
+    };
+  }
+
   const contentHash = sha256(mainContent);
 
   // hash 短路（§6.1 步驟 4）：內容冇變，完全跳過 LLM。

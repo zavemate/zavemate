@@ -19,16 +19,24 @@ const poisonProvider: LLMProvider = {
   },
 };
 
+/**
+ * 用一份真實條款 PDF，唔用 example.com——example.com 淨係得約 170 個字元純文字，
+ * 會被 assessExtraction 正確咁判做「抽取太薄」，短路根本行唔到嗰步。
+ */
+const REAL_TNC = 'https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf';
+let cachedHash: string | null = null;
+async function realHash(): Promise<string> {
+  if (cachedHash === null) cachedHash = sha256(extractMainContent((await fetchSource(REAL_TNC, 'pdf')).content));
+  return cachedHash;
+}
+
 describe('runPipeline（hash 短路，唔使真 LLM）', () => {
   it('content_hash 冇變 → unchanged，完全唔會叫 LLM', async () => {
     // 先真係 fetch 一次攞返實際 hash，等個 test 反映真實情況（唔係憑估）。
-    const fetched = await fetchSource('https://example.com/', 'html');
-    const currentHash = sha256(extractMainContent(fetched.content));
-
     const outcome = await runPipeline({
-      url: 'https://example.com/',
-      renderMode: 'html',
-      existingContentHash: currentHash,
+      url: REAL_TNC,
+      renderMode: 'pdf',
+      existingContentHash: await realHash(),
       knownRules: [],
       cardName: 'Demo Card',
       provider: poisonProvider,
@@ -48,8 +56,8 @@ describe('runPipeline（hash 短路，唔使真 LLM）', () => {
     };
 
     await runPipeline({
-      url: 'https://example.com/',
-      renderMode: 'html',
+      url: REAL_TNC,
+      renderMode: 'pdf',
       existingContentHash: null,
       knownRules: [],
       cardName: 'Demo Card',
@@ -57,6 +65,20 @@ describe('runPipeline（hash 短路，唔使真 LLM）', () => {
     });
 
     expect(called).toBe(true);
+  });
+
+  it('圖片型 PDF（抽唔到文字）→ extraction_too_thin，唔會餵 LLM', async () => {
+    // HSBC 呢份 reward scheme 條款係 4 頁圖片，extractMainContent 只抽到約 101 字元。
+    const outcome = await runPipeline({
+      url: 'https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/reward-scheme-terms-and-conditions.pdf',
+      renderMode: 'pdf',
+      existingContentHash: null,
+      knownRules: [],
+      cardName: 'HSBC Red Credit Card',
+      provider: poisonProvider,
+    });
+
+    expect(outcome.kind).toBe('extraction_too_thin');
   });
 });
 

@@ -20,6 +20,15 @@ export interface Agent1RunOptions {
   cards?: Card[];
   /** 淨係測試用，唔提供就用真實 openPR()（打真 GitHub API）。 */
   openPRFn?: OpenPRFn;
+  /**
+   * 淨係測試用，唔提供就用真實 runPipeline()（真係去 fetch）。
+   *
+   * 冇呢個注入點嘅話，run.test.ts 每個 case 都要打真網站——之前一路靠
+   * example.com，又慢又 flaky（加多兩個 fetch 就撞 rate limit 累到其他
+   * test 冧），而且 example.com 個頁面短到會被 assessExtraction 正確咁
+   * 判做「抽取太薄」。pipeline 本身有自己嘅 integration test 覆蓋。
+   */
+  runPipelineFn?: typeof runPipeline;
 }
 
 export interface Agent1RunResult {
@@ -54,6 +63,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   const owner = options.owner ?? 'zavemate';
   const repo = options.repo ?? 'zavemate';
   const openPRImpl = options.openPRFn ?? openPR;
+  const runPipelineImpl = options.runPipelineFn ?? runPipeline;
 
   const cards = options.cards ?? loadActiveCards();
   /** 原始版本，淨係俾 evaluateGate 做「舊 vs 新」對比用，成個 run 都唔會變。 */
@@ -92,7 +102,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
 
   for (const sourceWork of work) {
     const knownRules = sourceWork.rules.map(({ cardId: _cardId, ...rest }) => rest);
-    const outcome = await runPipeline({
+    const outcome = await runPipelineImpl({
       url: sourceWork.sourceUrl,
       renderMode: sourceWork.renderMode,
       existingContentHash: sourceWork.existingContentHash,

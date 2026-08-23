@@ -59,6 +59,27 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
     return { updatedCards, notes, brokenSources, attentionNeeded };
   }
 
+  if (outcome.kind === 'extraction_too_thin') {
+    // 同 fetch_failed 一樣處理：讀唔到就唔郁數值、唔郁 confidence、唔郁
+    // last_verified_at，淨係累積 check_fail_count 等佢浮上水面。
+    for (const rule of work.rules) {
+      patchRule(rule.cardId, rule.rule_id, (r) => {
+        r.provenance.check_fail_count += 1;
+        r.provenance.last_checked_at = now;
+      });
+      const newCount = getOrCloneCard(rule.cardId).rewards.find((r) => r.rule_id === rule.rule_id)!.provenance
+        .check_fail_count;
+      notes.push(
+        `⚠️ ${rule.cardId}/${rule.rule_id}：抓到份文件但抽唔到文字（${outcome.reason}），check_fail_count → ${newCount}`,
+      );
+      if (newCount >= 3) brokenSources.push(work.sourceUrl);
+    }
+    attentionNeeded.push(
+      `${work.sourceUrl}：抽取失敗（${outcome.reason}）——呢份文件可能要人手讀，或者要搵第二個出處`,
+    );
+    return { updatedCards, notes, brokenSources, attentionNeeded };
+  }
+
   if (outcome.kind === 'unchanged') {
     for (const rule of work.rules) {
       patchRule(rule.cardId, rule.rule_id, (r) => {
