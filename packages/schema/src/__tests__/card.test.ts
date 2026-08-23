@@ -232,6 +232,38 @@ describe('Card.sources[]（來源覆蓋率）', () => {
     ).toThrow(/scheme/);
   });
 
+  it('冇 scheme 但有 programme_base + card_index → 可以 official（銀行真係冇出卡專屬條款）', () => {
+    // hsbc_premier_mastercard 嘅真實情況：important-information.pdf 目錄列晒
+    // 適用條款，冇任何 reward scheme，即係佢個回贈本身就係 RewardCash 計劃地板。
+    const parsed = Card.parse(
+      card({
+        sources: [
+          { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null },
+          {
+            url: 'https://www.example-bank.com.hk/cards/demo/important-information.pdf',
+            purpose: 'card_index',
+            note: null,
+            last_modified: null,
+            etag: null,
+          },
+        ],
+      }),
+    );
+    expect(parsed.rewards[0]?.provenance.confidence).toBe('official');
+  });
+
+  it('有 programme_base 但冇 card_index → 唔准 official（可能只係我哋搵漏）', () => {
+    expect(() =>
+      Card.parse(
+        card({
+          sources: [
+            { url: provenance.source_url, purpose: 'programme_base', note: null, last_modified: null, etag: null },
+          ],
+        }),
+      ),
+    ).toThrow(/card_index/);
+  });
+
   it('冇 scheme 文件但全部 rule 標 unconfirmed → 通過（唔肯定係正確答案）', () => {
     const parsed = Card.parse(
       card({

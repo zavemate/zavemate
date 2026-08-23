@@ -143,6 +143,16 @@ export const SourcePurpose = z.enum([
   'card_terms',
   /** Key Facts Statement。 */
   'kfs',
+  /**
+   * 銀行自己列嘅「呢張卡適用邊幾份條款」目錄（HSBC 嘅 important-information.pdf）。
+   *
+   * 佢係「呢張卡真係冇卡專屬獎賞計劃」嘅權威證據——冇呢樣嘢，我哋分唔到
+   * 「銀行冇出過」同「我哋搵漏咗」。hsbc_premier_mastercard 就係前者：
+   * 目錄由頭到尾冇 reward scheme，佢個回贈本身就係 RewardCash 計劃地板；
+   * 而 hsbc_red 個目錄就明確列住「Terms and Conditions for HSBC Red Credit
+   * Card Reward Scheme」。
+   */
+  'card_index',
   /** 產品／行銷頁。永遠唔可以做 official 數值嘅出處（CLAUDE.md：行銷頁成日將限時優惠講到似永久 base rate）。 */
   'product_page',
 ]);
@@ -218,8 +228,11 @@ export const Card = CardBase.superRefine((card, ctx) => {
     byUrl.set(source.url, source.purpose);
   }
 
-  /** 有冇自己嘅獎賞計劃條款。冇 = 我哋根本未搵到呢張卡個回贈率喺邊度寫。 */
+  /** 有冇自己嘅獎賞計劃條款。 */
   const hasScheme = card.sources.some((source) => source.purpose === 'scheme');
+  const hasProgrammeBase = card.sources.some((source) => source.purpose === 'programme_base');
+  /** 銀行自己張適用條款目錄——「佢真係冇出 scheme」嘅證據。 */
+  const hasCardIndex = card.sources.some((source) => source.purpose === 'card_index');
 
   const checkSourceListed = (url: string, path: (string | number)[]) => {
     if (!byUrl.has(url)) {
@@ -248,12 +261,13 @@ export const Card = CardBase.superRefine((card, ctx) => {
       });
     }
 
-    // 冇 scheme 文件就冇資格話自己肯定。
-    if (!hasScheme) {
+    // 冇 scheme 文件就要有證據證明「銀行根本冇出過」，唔係就冇資格話自己肯定。
+    if (!hasScheme && !(hasProgrammeBase && hasCardIndex)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['rewards', index, 'provenance', 'confidence'],
-        message: `張卡 sources[] 冇任何 purpose "scheme" 嘅文件，即係未搵到官方獎賞計劃條款——confidence 唔可以係 "official"，要標 "unconfirmed"`,
+        message:
+          '張卡 sources[] 冇 purpose "scheme" 嘅文件。如果係因為銀行根本冇出卡專屬獎賞計劃（例如回贈就係計劃地板），要同時收埋 "programme_base" 同 "card_index"（銀行自己列嘅適用條款目錄）做證據；否則即係未搵齊，confidence 要標 "unconfirmed"',
       });
     }
   }

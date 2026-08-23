@@ -69,6 +69,13 @@
       "note": "同上。產品頁「4%」出現 9 次但我哋一條 rule 都冇，scheme 條款未搵到（候選 reward-scheme-terms-and-conditions.pdf 係圖片型 PDF，4 頁只抽到 101 字元）。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+    },
+    {
+      "etag": null,
+      "last_modified": "Tue, 23 Dec 2025 09:10:45 GMT",
+      "note": "銀行自己列嘅適用條款目錄。明確列住「Terms and Conditions for HSBC Red Credit Card Reward Scheme」，證實呢張卡有卡專屬獎賞計劃。",
+      "purpose": "card_index",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/red/important-information.pdf"
     }
   ]
 }

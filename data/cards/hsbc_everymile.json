@@ -153,6 +153,13 @@
       "note": "RewardCash Programme 通用條款，成個計劃嘅地板。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+    },
+    {
+      "etag": null,
+      "last_modified": "Wed, 24 Dec 2025 06:41:35 GMT",
+      "note": "銀行自己列嘅適用條款目錄。",
+      "purpose": "card_index",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/important-information.pdf"
     }
   ]
 }

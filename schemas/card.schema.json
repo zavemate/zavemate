@@ -496,6 +496,7 @@
                   "merchant_list",
                   "card_terms",
                   "kfs",
+                  "card_index",
                   "product_page"
                 ],
                 "type": "string"
