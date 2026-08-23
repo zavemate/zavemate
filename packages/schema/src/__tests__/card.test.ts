@@ -217,3 +217,66 @@ describe('RewardRule', () => {
     ).toThrow();
   });
 });
+
+describe('Card.sources[]（來源覆蓋率）', () => {
+  const scheme = (url: string) => ({ url, purpose: 'scheme' as const, note: null });
+
+  it('冇任何 purpose "scheme" 嘅文件 → rule 唔可以標 official', () => {
+    // hsbc_red / hsbc_premier_mastercard 嘅真實情況：得一份通用計劃條款。
+    expect(() =>
+      Card.parse(
+        card({
+          sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null }],
+        }),
+      ),
+    ).toThrow(/scheme/);
+  });
+
+  it('冇 scheme 文件但全部 rule 標 unconfirmed → 通過（唔肯定係正確答案）', () => {
+    const parsed = Card.parse(
+      card({
+        sources: [{ url: provenance.source_url, purpose: 'programme_base', note: null }],
+        rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })],
+      }),
+    );
+    expect(parsed.rewards[0]?.provenance.confidence).toBe('unconfirmed');
+  });
+
+  it('official 唔可以攞 merchant_list 做出處', () => {
+    // hsbc_everymile_designated 嘅真實情況：指住份商戶名單但標 official。
+    expect(() =>
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'merchant_list', note: null }] })),
+    ).toThrow(/merchant_list/);
+  });
+
+  it('official 唔可以攞 product_page 做出處', () => {
+    expect(() =>
+      Card.parse(card({ sources: [{ url: provenance.source_url, purpose: 'product_page', note: null }] })),
+    ).toThrow(/product_page/);
+  });
+
+  it('rule 用緊嘅 source_url 冇登記喺 sources[] → 唔通過', () => {
+    expect(() =>
+      Card.parse(card({ sources: [scheme('https://www.example-bank.com.hk/other-doc.pdf')] })),
+    ).toThrow(/sources\[\]/);
+  });
+
+  it('sources[] 唔可以有重複 url', () => {
+    expect(() =>
+      Card.parse(card({ sources: [scheme(provenance.source_url), scheme(provenance.source_url)] })),
+    ).toThrow(/重複/);
+  });
+
+  it('一張卡可以有多份文件，各自標用途', () => {
+    const parsed = Card.parse(
+      card({
+        sources: [
+          scheme(provenance.source_url),
+          { url: 'https://www.example-bank.com.hk/merchants.pdf', purpose: 'merchant_list', note: '指定商戶名單' },
+          { url: 'https://www.example-bank.com.hk/kfs.pdf', purpose: 'kfs', note: null },
+        ],
+      }),
+    );
+    expect(parsed.sources).toHaveLength(3);
+  });
+});

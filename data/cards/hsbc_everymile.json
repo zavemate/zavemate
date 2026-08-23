@@ -86,11 +86,11 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "498fa4b666020c955c93c220ae0ff3b2584b47f2b2215d3583a2c132dab51da0",
-        "evidence_excerpt": "Enjoy every HK$2 spent = 1 mile for the below Designated Everyday & Travel Spend Merchants.",
-        "last_checked_at": "2026-08-21T04:00:00.000Z",
-        "last_verified_at": "2026-08-21T04:00:00.000Z",
-        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
+        "content_hash": null,
+        "evidence_excerpt": "港幣 2 元簽賬 = 1 飛行里數",
+        "last_checked_at": null,
+        "last_verified_at": null,
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
       },
       "registration_url": null,
       "requires_registration": false,
@@ -136,6 +136,23 @@
       },
       "rule_id": "hsbc_everymile_general",
       "tier": null
+    }
+  ],
+  "sources": [
+    {
+      "note": "完整比率表：指定日常及旅遊消費 HK$2=1里、本地及海外簽賬 HK$5=1里、其他指定簽賬 HK$12.5=1里。推廣期 2026-07-01 至 2026-12-31，逐期續期。",
+      "purpose": "scheme",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
+    },
+    {
+      "note": "淨係列指定商戶名單，冇任何回贈率。1.1MB 但只抽到約 2,900 字。之前錯誤咁攞咗佢做回贈率出處。",
+      "purpose": "merchant_list",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf"
+    },
+    {
+      "note": "RewardCash Programme 通用條款，成個計劃嘅地板。",
+      "purpose": "programme_base",
+      "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
     }
   ]
 }

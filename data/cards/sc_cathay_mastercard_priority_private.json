@@ -56,5 +56,12 @@
       "rule_id": "sc_cathay_mastercard_priority_private_base",
       "tier": null
     }
+  ],
+  "sources": [
+    {
+      "note": null,
+      "purpose": "scheme",
+      "url": "https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf"
+    }
   ]
 }

@@ -123,6 +123,39 @@ export const RewardRule = RewardRuleBase.superRefine((rule, ctx) => {
 });
 export type RewardRule = z.infer<typeof RewardRule>;
 
+/**
+ * 一份來源文件係咩嚟。
+ *
+ * 分呢個用途出嚟，唔係為咗好睇——係因為「張卡有冇自己嘅獎賞計劃條款」呢個問題
+ * 冇欄位表達嘅話，根本檢查唔到。hsbc_red / hsbc_premier_mastercard 就係咁：
+ * 兩張卡都淨係指住通用嘅 RewardCash Programme 條款（成個計劃嘅地板，原文寫明
+ * "Except as specified in Clause 5"），但標住 confidence: official，冇任何嘢
+ * 攔得住。
+ */
+export const SourcePurpose = z.enum([
+  /** 呢張卡自己嘅獎賞計劃條款——回贈率嘅正式出處。 */
+  'scheme',
+  /** 發卡行通用獎賞計劃條款（例如 HSBC RewardCash Programme）。係地板，唔係邊張卡嘅回贈率。 */
+  'programme_base',
+  /** 指定商戶／類別名單。講「邊度用」，唔講「賺幾多」。 */
+  'merchant_list',
+  /** 信用卡一般條款。 */
+  'card_terms',
+  /** Key Facts Statement。 */
+  'kfs',
+  /** 產品／行銷頁。永遠唔可以做 official 數值嘅出處（CLAUDE.md：行銷頁成日將限時優惠講到似永久 base rate）。 */
+  'product_page',
+]);
+export type SourcePurpose = z.infer<typeof SourcePurpose>;
+
+export const CardSource = z.strictObject({
+  url: z.string().url(),
+  purpose: SourcePurpose,
+  /** 點解收呢份、或者佢有咩限制（例如：圖片型 PDF，抽唔到文字）。 */
+  note: z.string().nullable(),
+});
+export type CardSource = z.infer<typeof CardSource>;
+
 export const Network = z.enum(['visa', 'mastercard', 'amex', 'unionpay', 'jcb']);
 export type Network = z.infer<typeof Network>;
 
@@ -138,6 +171,13 @@ export const CardBase = z.strictObject({
   fx_fee_rate: z.number().nullable(),
   eligibility: Eligibility,
   active: z.boolean().default(true),
+  /**
+   * 呢張卡要監察嘅全部來源文件。
+   *
+   * source_url 之前淨係埋喺每條 rule 嘅 provenance 入面，所以冇人答到
+   * 「呢張卡啲條款收齊咗未」。呢個 array 就係嗰個答案。
+   */
+  sources: z.array(CardSource),
   rewards: z.array(RewardRule),
   /** 卡層面嘅出處（產品主頁）。 */
   provenance: Provenance,
@@ -153,6 +193,59 @@ export const Card = CardBase.superRefine((card, ctx) => {
       path: ['eligibility'],
       message: 'eligibility.min_relationship_balance 同 eligibility.note 要一齊有值或者一齊 null',
     });
+  }
+
+  // ── sources[] 覆蓋率檢查 ──────────────────────────────────────────────
+  const byUrl = new Map<string, SourcePurpose>();
+  for (const [index, source] of card.sources.entries()) {
+    if (byUrl.has(source.url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sources', index, 'url'],
+        message: `sources[] 入面 "${source.url}" 重複咗`,
+      });
+    }
+    byUrl.set(source.url, source.purpose);
+  }
+
+  /** 有冇自己嘅獎賞計劃條款。冇 = 我哋根本未搵到呢張卡個回贈率喺邊度寫。 */
+  const hasScheme = card.sources.some((source) => source.purpose === 'scheme');
+
+  const checkSourceListed = (url: string, path: (string | number)[]) => {
+    if (!byUrl.has(url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path,
+        message: `source_url "${url}" 冇列喺卡層 sources[] 入面——每個抓緊嘅來源都要登記埋用途`,
+      });
+      return null;
+    }
+    return byUrl.get(url)!;
+  };
+
+  checkSourceListed(card.provenance.source_url, ['provenance', 'source_url']);
+
+  for (const [index, rule] of card.rewards.entries()) {
+    const purpose = checkSourceListed(rule.provenance.source_url, ['rewards', index, 'provenance', 'source_url']);
+    if (rule.provenance.confidence !== 'official') continue;
+
+    // official 唔可以建基於「賺幾多」以外嘅文件。
+    if (purpose === 'product_page' || purpose === 'merchant_list') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rewards', index, 'provenance', 'confidence'],
+        message: `confidence "official" 唔可以攞 purpose "${purpose}" 嘅文件做出處——行銷頁同商戶名單講「邊度用」，唔講「賺幾多」`,
+      });
+    }
+
+    // 冇 scheme 文件就冇資格話自己肯定。
+    if (!hasScheme) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rewards', index, 'provenance', 'confidence'],
+        message: `張卡 sources[] 冇任何 purpose "scheme" 嘅文件，即係未搵到官方獎賞計劃條款——confidence 唔可以係 "official"，要標 "unconfirmed"`,
+      });
+    }
   }
 
   const seen = new Set<string>();

@@ -464,6 +464,41 @@
             "type": "object"
           },
           "type": "array"
+        },
+        "sources": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "purpose": {
+                "enum": [
+                  "scheme",
+                  "programme_base",
+                  "merchant_list",
+                  "card_terms",
+                  "kfs",
+                  "product_page"
+                ],
+                "type": "string"
+              },
+              "url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "url",
+              "purpose",
+              "note"
+            ],
+            "type": "object"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -476,6 +511,7 @@
         "annual_fee_waiver_note",
         "fx_fee_rate",
         "eligibility",
+        "sources",
         "rewards",
         "provenance"
       ],
