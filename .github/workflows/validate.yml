@@ -17,6 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # change stream 係由 git history 重建出嚟（§7.2 步驟 4），所以測試同
+          # build 都需要完整 history。預設 fetch-depth: 1 淨係得一個 commit，
+          # rebuildAllChangeEvents 會咩都搵唔到而靜靜哋通過。
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:

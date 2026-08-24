@@ -74,7 +74,10 @@ describe('rebuildAllChangeEvents（行真 git history）', () => {
   const events = rebuildAllChangeEvents();
 
   it('由 commit 1 重建到成條 stream', () => {
-    expect(events.length).toBeGreaterThan(0);
+    // 呢啲 test 需要完整 git history。CI 嘅 actions/checkout 預設 fetch-depth: 1
+    // （shallow），咁樣會咩都搵唔到而靜靜哋通過——所以 validate.yml 設咗
+    // fetch-depth: 0。如果呢度 fail，先睇下係咪 shallow clone。
+    expect(events.length, '冇 event——係咪 shallow clone？需要 fetch-depth: 0').toBeGreaterThan(0);
   });
 
   it('每個 event 都帶住 provenance——change stream 都係 API response', () => {
