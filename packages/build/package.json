@@ -1,0 +1,13 @@
+{
+  "name": "@zavemate/build",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@zavemate/core": "*",
+    "@zavemate/schema": "*"
+  }
+}
