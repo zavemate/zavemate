@@ -59,8 +59,8 @@
         "confidence": "unconfirmed",
         "content_hash": "9e0feb15eedf5a7d294d098e1a14b131f179fcbdcab438d35d7e5d3c052c2d07",
         "evidence_excerpt": "CashBack for Eligible Transactions made at Designated Merchants up to the Spending Cap: 5% (both HKD4,000-14,999 and HKD15,000-or-above tiers). The 5% CashBack Percentage includes the Basic Cashback.",
-        "last_checked_at": "2026-08-23T20:53:24.889Z",
-        "last_verified_at": "2026-08-23T20:53:24.889Z",
+        "last_checked_at": "2026-08-24T12:05:28.311Z",
+        "last_verified_at": "2026-08-24T12:05:28.311Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf"
       },
       "registration_url": null,
@@ -97,8 +97,8 @@
         "confidence": "official",
         "content_hash": "9e0feb15eedf5a7d294d098e1a14b131f179fcbdcab438d35d7e5d3c052c2d07",
         "evidence_excerpt": "CashBack for Other Eligible Transactions (\"Basic CashBack\"): HKD 4,000 to HKD14,999 → 0.56%",
-        "last_checked_at": "2026-08-23T20:53:24.889Z",
-        "last_verified_at": "2026-08-23T20:53:24.889Z",
+        "last_checked_at": "2026-08-24T12:05:28.311Z",
+        "last_verified_at": "2026-08-24T12:05:28.311Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf"
       },
       "registration_url": null,
@@ -135,8 +135,8 @@
         "confidence": "official",
         "content_hash": "9e0feb15eedf5a7d294d098e1a14b131f179fcbdcab438d35d7e5d3c052c2d07",
         "evidence_excerpt": "CashBack for Other Eligible Transactions (\"Basic CashBack\"): HKD 15,000 or above → 1.20%",
-        "last_checked_at": "2026-08-23T20:53:24.889Z",
-        "last_verified_at": "2026-08-23T20:53:24.889Z",
+        "last_checked_at": "2026-08-24T12:05:28.311Z",
+        "last_verified_at": "2026-08-24T12:05:28.311Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf"
       },
       "registration_url": null,
