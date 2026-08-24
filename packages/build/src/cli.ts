@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { appendChangeEvents, changeEventsForCommit, rebuildAllChangeEvents } from './changes.ts';
 import { loadData, repoRoot } from './load.ts';
 import { buildSnapshot } from './snapshot.ts';
 import { writeSnapshot } from './write.ts';
@@ -15,6 +16,14 @@ const version = resolveVersion();
 const asOf = process.env.SNAPSHOT_AS_OF ?? new Date().toISOString().slice(0, 10);
 const distDir = join(repoRoot, 'dist');
 
+/**
+ * --rebuild-changes：由 commit 1 重新生成成條 change stream（§8 Phase 3 acceptance）。
+ *
+ * 呢個係 git 方案相對 DB 嘅實質優勢：change events 係 derived，唔係 source of
+ * truth，所以 event schema 幾時想改都得，重跑一次就重建晒。DB 方案要做遷移。
+ */
+const rebuildChanges = process.argv.includes('--rebuild-changes');
+
 const data = loadData();
 const snapshot = buildSnapshot(data, { version, asOf });
 const written = writeSnapshot(snapshot, distDir);
@@ -28,3 +37,22 @@ console.log(
   `  其中 ${snapshot.coverage.unconfirmed_rules} 條唔係 official、${snapshot.coverage.undetermined_rules} 條適用範圍表達唔到`,
 );
 console.log(`  ${written.length} 個檔，共 ${(total / 1024).toFixed(1)} KB`);
+
+const changesDir = join(distDir, 'changes');
+const events = rebuildChanges
+  ? rebuildAllChangeEvents()
+  : changeEventsForCommit({
+      sha: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
+      subject: execFileSync('git', ['log', '-1', '--format=%s'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
+      committedAt: new Date(
+        Number(execFileSync('git', ['log', '-1', '--format=%ct'], { cwd: repoRoot, encoding: 'utf8' }).trim()) * 1000,
+      ).toISOString(),
+    });
+
+const appended = appendChangeEvents(events, changesDir);
+const totalAppended = [...appended.values()].reduce((n, v) => n + v, 0);
+console.log(
+  rebuildChanges
+    ? `change stream 由 commit 1 重建：${events.length} 個 event，寫入 ${totalAppended} 行`
+    : `change events：${events.length} 個，寫入 ${totalAppended} 行`,
+);

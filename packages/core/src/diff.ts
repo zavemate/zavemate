@@ -15,6 +15,7 @@ export type ChangeType =
   | 'cap_removed'
   | 'cap_changed'
   | 'effective_date_changed'
+  | 'confidence_changed' // provenance.confidence 變咗（official ↔ unconfirmed ↔ crowdsourced）
   | 'field_changed'; // catch-all：annual_fee、fx_fee_rate、card_name、eligibility、match 等
 
 export interface FieldChange {
@@ -56,6 +57,23 @@ function fieldChanged(oldValue: unknown, newValue: unknown): boolean {
 function diffRule(cardId: string, oldRule: RewardRule, newRule: RewardRule): FieldChange[] {
   const changes: FieldChange[] = [];
   const ruleId = newRule.rule_id;
+
+  // confidence 變咗係實質資訊，唔係 metadata 雜訊。
+  //
+  // 「我哋由肯定變成唔肯定」對用戶嚟講同數值改咗一樣重要——佢要知幾時唔應該
+  // 再信呢個數。冇呢個 event，一條 rule 由 official 跌做 unconfirmed 會靜靜哋
+  // 發生，只有睇 git log 先知。
+  if (oldRule.provenance.confidence !== newRule.provenance.confidence) {
+    changes.push({
+      card_id: cardId,
+      rule_id: newRule.rule_id,
+      type: 'confidence_changed',
+      field: 'provenance.confidence',
+      old: oldRule.provenance.confidence,
+      new: newRule.provenance.confidence,
+      pct_change: null,
+    });
+  }
 
   if (oldRule.reward.type !== newRule.reward.type || fieldChanged(oldRule.reward, newRule.reward)) {
     const oldValue = rewardValue(oldRule);
@@ -263,6 +281,8 @@ export function describeChange(change: FieldChange): string {
       return `${target}：cap 由 ${JSON.stringify(change.old)} 變 ${JSON.stringify(change.new)}${pct}`;
     case 'effective_date_changed':
       return `${target}：生效日期由 ${JSON.stringify(change.old)} 變 ${JSON.stringify(change.new)}`;
+    case 'confidence_changed':
+      return `${target}：confidence 由 ${change.old} 變 ${change.new}`;
     case 'field_changed':
       return `${target}：${change.field} 由 ${JSON.stringify(change.old)} 變 ${JSON.stringify(change.new)}`;
   }

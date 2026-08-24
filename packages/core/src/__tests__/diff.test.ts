@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { describeChange, diffCards } from '../diff.ts';
-import { card, rewardRule } from './fixtures.ts';
+import { card, provenance, rewardRule } from './fixtures.ts';
 
 describe('diffCards', () => {
   it('新卡 → 一個 card_added', () => {
@@ -106,5 +106,27 @@ describe('diffCards', () => {
     const line = describeChange(changes[0]!);
     expect(line).toContain('demo_card');
     expect(line).toContain('demo_card_online');
+  });
+});
+
+describe('confidence_changed', () => {
+  it('official → unconfirmed → 出 event（我哋由肯定變成唔肯定，用戶要知）', () => {
+    const oldCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'official' } })] });
+    const newCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })] });
+    const changes = diffCards(oldCard, newCard);
+    const change = changes.find((c) => c.type === 'confidence_changed')!;
+    expect(change.field).toBe('provenance.confidence');
+    expect(change.old).toBe('official');
+    expect(change.new).toBe('unconfirmed');
+  });
+
+  it('unconfirmed → official 一樣出 event', () => {
+    const oldCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'unconfirmed' } })] });
+    const newCard = card({ rewards: [rewardRule({ provenance: { ...provenance, confidence: 'official' } })] });
+    expect(diffCards(oldCard, newCard).some((c) => c.type === 'confidence_changed')).toBe(true);
+  });
+
+  it('confidence 冇變 → 唔會出（唔好用 metadata 雜訊浸死條 stream）', () => {
+    expect(diffCards(card(), card()).some((c) => c.type === 'confidence_changed')).toBe(false);
   });
 });
