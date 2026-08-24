@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { appendChangeEvents, changeEventsForCommit, rebuildAllChangeEvents } from './changes.ts';
 import { loadData, repoRoot } from './load.ts';
+import { uploadSnapshot } from './upload.ts';
 import { buildSnapshot } from './snapshot.ts';
 import { writeSnapshot } from './write.ts';
 
@@ -23,6 +24,12 @@ const distDir = join(repoRoot, 'dist');
  * truth，所以 event schema 幾時想改都得，重跑一次就重建晒。DB 方案要做遷移。
  */
 const rebuildChanges = process.argv.includes('--rebuild-changes');
+
+/**
+ * --upload：真係推上 R2。預設唔上傳——build 應該喺本機／CI 行得，唔使 credential。
+ * 要 R2_BUCKET 同 wrangler 認得嘅 CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID。
+ */
+const upload = process.argv.includes('--upload');
 
 const data = loadData();
 const snapshot = buildSnapshot(data, { version, asOf });
@@ -56,3 +63,18 @@ console.log(
     ? `change stream 由 commit 1 重建：${events.length} 個 event，寫入 ${totalAppended} 行`
     : `change events：${events.length} 個，寫入 ${totalAppended} 行`,
 );
+
+if (upload) {
+  const bucket = process.env.R2_BUCKET;
+  if (!bucket) {
+    console.error('冇 R2_BUCKET，唔知上傳去邊。');
+    process.exit(1);
+  }
+  const keys = [
+    ...written.map((file) => file.path),
+    ...[...appended.keys()].map((year) => join('changes', `${year}.jsonl`)),
+  ];
+  const uploaded = uploadSnapshot({ bucket, distDir, keys });
+  console.log(`上傳咗 ${uploaded.length} 個 object 去 ${bucket}`);
+  for (const object of uploaded) console.log(`  ${object.key}  ${object.cacheControl}`);
+}
