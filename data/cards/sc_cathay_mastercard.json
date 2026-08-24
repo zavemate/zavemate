@@ -34,7 +34,8 @@
         "mcc_include": null,
         "merchant_exclude": null,
         "merchant_include": null,
-        "min_spend_per_txn": null
+        "min_spend_per_txn": null,
+        "scope": "all"
       },
       "provenance": {
         "check_fail_count": 0,

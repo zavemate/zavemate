@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Card, RewardRule } from '../card.ts';
-import { card, provenance, rewardRule } from './fixtures.ts';
+import { card, emptyMatch, provenance, rewardRule } from './fixtures.ts';
 
 describe('Card', () => {
   it('接受一張正常嘅現金回贈卡', () => {
@@ -215,6 +215,39 @@ describe('RewardRule', () => {
     expect(() =>
       RewardRule.parse(rewardRule({ match: { ...(rewardRule().match as object), mcc_include: ['581'] } })),
     ).toThrow();
+  });
+});
+
+describe('match.scope', () => {
+  it('scope = "criteria" 但一個準則都冇填 → 唔通過', () => {
+    expect(() => RewardRule.parse(rewardRule({ match: { ...emptyMatch, scope: 'criteria' } }))).toThrow(/criteria/);
+  });
+
+  it('scope = "all" 但填咗準則 → 唔通過（有準則就應該係 criteria）', () => {
+    expect(() =>
+      RewardRule.parse(rewardRule({ match: { ...emptyMatch, scope: 'all', currency: ['HKD'] } })),
+    ).toThrow(/all/);
+  });
+
+  it('scope = "undetermined" 但填咗準則 → 唔通過', () => {
+    expect(() =>
+      RewardRule.parse(rewardRule({ match: { ...emptyMatch, scope: 'undetermined', mcc_include: ['5812'] } })),
+    ).toThrow(/undetermined/);
+  });
+
+  it('scope = "all" + 一個準則都冇 → 通過（渣打 Cathay base 嘅情況）', () => {
+    const parsed = RewardRule.parse(rewardRule({ match: { ...emptyMatch, scope: 'all' } }));
+    expect(parsed.match.scope).toBe('all');
+  });
+
+  it('scope = "undetermined" + 一個準則都冇 → 通過（EveryMile 第 (c) 類：官方有講範圍，但我哋表達唔到）', () => {
+    const parsed = RewardRule.parse(rewardRule({ match: { ...emptyMatch, scope: 'undetermined' } }));
+    expect(parsed.match.scope).toBe('undetermined');
+  });
+
+  it('scope 冇 default——唔填就唔通過（逼每條 rule 明確 declare）', () => {
+    const { scope: _scope, ...noScope } = emptyMatch;
+    expect(() => RewardRule.parse(rewardRule({ match: noScope }))).toThrow();
   });
 });
 

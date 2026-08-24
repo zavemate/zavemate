@@ -18,7 +18,8 @@
     ],
     "merchant_exclude": null,
     "merchant_include": null,
-    "min_spend_per_txn": null
+    "min_spend_per_txn": null,
+    "scope": "criteria"
   },
   "new_customer_only": false,
   "promotion_id": "sc_cathay_mastercard_2026q1_dining_hotel",

@@ -33,7 +33,8 @@
       "Tmoney",
       "OLIVE YOUNG"
     ],
-    "min_spend_per_txn": null
+    "min_spend_per_txn": null,
+    "scope": "criteria"
   },
   "new_customer_only": false,
   "promotion_id": "hsbc_red_2026q3_designated",
