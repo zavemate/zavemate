@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import { createDeepSeekProvider } from './deepseek.ts';
 import { runAgent1 } from './run.ts';
 
@@ -23,6 +24,15 @@ const result = await runAgent1({
   provider: createDeepSeekProvider(deepSeekKey),
   githubToken,
 });
+
+// 交俾 workflow 落一步：checkout 個 branch、行返 validate、post commit status。
+// GitHub 唔會為 GITHUB_TOKEN 開嘅 PR 觸發 workflow（防遞迴），所以 validate
+// 永遠唔會自己喺 agent PR 上面跑——要我哋自己補返個 status，唔係嘅話 branch
+// protection 會令每個週期 PR 都永遠 BLOCKED。
+if (process.env.GITHUB_OUTPUT && result.branchName) {
+  appendFileSync(process.env.GITHUB_OUTPUT, `branch=${result.branchName}\n`);
+  appendFileSync(process.env.GITHUB_OUTPUT, `pr_url=${result.prUrl ?? ''}\n`);
+}
 
 if (result.prUrl) {
   console.log(`開咗 PR：${result.prUrl}`);

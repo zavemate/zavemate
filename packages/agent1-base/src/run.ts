@@ -34,6 +34,8 @@ export interface Agent1RunOptions {
 export interface Agent1RunResult {
   prUrl: string | null;
   prNumber: number | null;
+  /** 開咗嘅 branch 名。workflow 要 checkout 佢嚟驗 PR 真正內容。 */
+  branchName: string | null;
   changed: number;
   verified: number;
   totalCostUsd: number;
@@ -84,6 +86,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   const emptyResult: Agent1RunResult = {
     prUrl: null,
     prNumber: null,
+    branchName: null,
     changed: 0,
     verified: 0,
     totalCostUsd: 0,
@@ -179,6 +182,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   return {
     prUrl: pr.url,
     prNumber: pr.number,
+    branchName: pr.branchName,
     changed,
     verified,
     totalCostUsd,

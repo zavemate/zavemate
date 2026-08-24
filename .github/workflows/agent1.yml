@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write # openPR() 用 Contents API 開 branch + 寫檔
   pull-requests: write # 開 PR + 加 label
+  statuses: write # 自己補返 validate status（見下面「驗證 PR 內容」）
 
 concurrency:
   group: agent1
@@ -28,9 +29,49 @@ jobs:
       - run: npm ci
 
       - name: 跑 Agent 1
+        id: agent1
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           # 用 GitHub 自動發嘅 per-run token（見上面 permissions），跑完即棄，
           # 唔使自己開 PAT。
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx tsx packages/agent1-base/src/cli.ts
+
+      # GitHub 唔會為 GITHUB_TOKEN 開嘅 PR 觸發 workflow（防遞迴機制），所以
+      # validate.yml 永遠唔會喺 agent 開嘅 PR 上面跑。而 branch protection
+      # 要求 validate、enforce_admins 又係 true——即係每個週期 PR 都永遠
+      # BLOCKED，冇人 merge 得到。實測過：PR #90 嘅 statusCheckRollup 係空。
+      #
+      # 所以我哋自己 checkout 個 branch、行返同一套檢查、再 post 個 validate
+      # commit status 上去。驗嘅係 PR 真正內容（openPR 係用 Contents API 寫檔，
+      # runner 個 working tree 仲係舊資料，所以一定要先 checkout）。
+      #
+      # 特登唔行 npm test：嗰啲 integration test 打真實銀行網站，agent 啱啱先
+      # 抓完一輪，再打多次係浪費同埋增加撞限流嘅風險。而 agent PR 只會改
+      # data/，改唔到 code——資料驗證 + 格式檢查先係有意義嗰部分。
+      - name: 驗證 PR 內容，補返 validate status
+        if: steps.agent1.outputs.branch != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          BRANCH='${{ steps.agent1.outputs.branch }}'
+          git fetch --depth=1 origin "$BRANCH"
+          git checkout FETCH_HEAD
+          SHA=$(git rev-parse HEAD)
+
+          if npm run typecheck && npm run fmt:check && npm run schema:check && npm run validate:data; then
+            STATE=success
+            DESC='資料驗證通過（agent PR 只改 data/，冇跑 network integration test）'
+          else
+            STATE=failure
+            DESC='資料驗證失敗——唔好 merge'
+          fi
+
+          gh api "repos/${{ github.repository }}/statuses/$SHA" \
+            -f state="$STATE" \
+            -f context=validate \
+            -f description="$DESC" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          [ "$STATE" = success ]

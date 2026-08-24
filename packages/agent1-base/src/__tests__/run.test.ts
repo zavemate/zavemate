@@ -86,6 +86,9 @@ describe('runAgent1', () => {
     });
 
     expect(result.prUrl).toBe('https://github.com/zavemate/zavemate/pull/42');
+    // workflow 要 branch name 去 checkout 個 PR、行 validate、post commit status
+    // （GitHub 唔會為 GITHUB_TOKEN 開嘅 PR 觸發 workflow）。
+    expect(result.branchName).toBe('agent1/2026-08-22');
     expect(result.changed).toBe(1);
     expect(result.gatePassed).toBe(true); // 0.04→0.038 屬合理範圍，冇中任何 GateReason
 
@@ -260,5 +263,6 @@ describe('runAgent1', () => {
       },
     });
     expect(result.prUrl).toBeNull();
+    expect(result.branchName).toBeNull();
   });
 });
