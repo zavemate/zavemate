@@ -24,8 +24,8 @@
   "rewards": [
     {
       "cap": null,
-      "effective_from": null,
-      "effective_to": null,
+      "effective_from": "2026-07-01",
+      "effective_to": "2026-12-31",
       "label": "指定日常及旅遊消費商戶（咖啡輕食、本地交通、跨境交通、旅遊服務等，見官方商戶清單，會不時更改）",
       "match": {
         "channel": null,
@@ -105,9 +105,9 @@
     },
     {
       "cap": null,
-      "effective_from": null,
-      "effective_to": null,
-      "label": "一般合資格簽賬（非指定商戶）——呢個數係我哋自己計出嚟，唔係官方單一句直接寫明：用 RewardCash Programme 通用 base rate（每 HK$250=$1 RewardCash，即 0.4%）乘 EveryMile 專屬「1 RewardCash=20里」換算率，得出 HK$12.5=1里。第三方網站有講「HK$5=1里」，同呢個推算唔一致，我哋搵唔到官方原文支持 $5 呢個數，故冇採用，寧願用推算出嚟、有根有據嘅 $12.5，confidence 定 official 因為兩個組成部分都係官方確認嘅事實，但呢條 rule 本身係推算值，唔係直接引句。",
+      "effective_from": "2026-07-01",
+      "effective_to": "2026-12-31",
+      "label": "本地及海外簽賬（官方第 (b) 類：所有唔屬於 (a) 指定日常及旅遊消費、亦唔屬於 (c) 八達通增值／網上繳費／其他指定簽賬 嘅合資格簽賬）。⚠️ schema 而家表達唔到官方嘅類別優先次序（(c) > (a) > (b)），三條 rule 嘅 match 準則都係空，落到 /best-card 會分唔開。",
       "match": {
         "channel": null,
         "currency": null,
@@ -119,12 +119,46 @@
       },
       "provenance": {
         "check_fail_count": 0,
-        "confidence": "unconfirmed",
-        "content_hash": "907ecd897181b0d79322dc9c201d7acff55714f1f4639b5ab65aeb7cadbeb2fb",
-        "evidence_excerpt": "推算：RewardCash Programme base rate「every HK$250 spent = $1 RewardCash」（0.4%） × EveryMile 一頁紙嘅「1 RewardCash to 20 miles」preferential conversion rate = 8% cash-equivalent，即 HK$12.5 = 1 里。呢個係推算值，唔係官方單一句直接寫明，故 confidence 定 unconfirmed。",
-        "last_checked_at": "2026-08-24T12:05:28.311Z",
-        "last_verified_at": "2026-08-24T12:05:28.311Z",
-        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
+        "confidence": "official",
+        "content_hash": "67e3ad2bbb94069f82e6c17f836154cea4ad76ae73f8e7612eb2f90dd0c1ce47",
+        "evidence_excerpt": "本地及海外簽賬 港幣 1,000 元 x 1% = $10「獎賞錢」 $10「獎賞錢」x 20 里 = 200 里 港幣 5 元簽賬 = 1 飛行里數",
+        "last_checked_at": null,
+        "last_verified_at": null,
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
+      },
+      "registration_url": null,
+      "requires_registration": false,
+      "reward": {
+        "hkd_per_mile": 5,
+        "points_per_hkd": null,
+        "rate": null,
+        "type": "miles"
+      },
+      "rule_id": "hsbc_everymile_local_overseas",
+      "tier": null
+    },
+    {
+      "cap": null,
+      "effective_from": "2026-07-01",
+      "effective_to": "2026-12-31",
+      "label": "「八達通自動增值」服務、增值八達通之簽賬、網上繳費簽賬及其他指定簽賬（官方第 (c) 類，包括但不限於本地超市、保費、證券買賣、繳付租金／物業管理費、廣告服務）。⚠️ 同上，match 準則表達唔到。",
+      "match": {
+        "channel": null,
+        "currency": null,
+        "mcc_exclude": null,
+        "mcc_include": null,
+        "merchant_exclude": null,
+        "merchant_include": null,
+        "min_spend_per_txn": null
+      },
+      "provenance": {
+        "check_fail_count": 0,
+        "confidence": "official",
+        "content_hash": "67e3ad2bbb94069f82e6c17f836154cea4ad76ae73f8e7612eb2f90dd0c1ce47",
+        "evidence_excerpt": "其他合資格 簽賬 港幣 1,000 元 x 0.4% = $4「獎賞錢」 $4「獎賞錢」x 20 里 = 80 里 港幣 12.5 元簽賬 = 1 飛行里數",
+        "last_checked_at": null,
+        "last_verified_at": null,
+        "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf"
       },
       "registration_url": null,
       "requires_registration": false,
@@ -134,7 +168,7 @@
         "rate": null,
         "type": "miles"
       },
-      "rule_id": "hsbc_everymile_general",
+      "rule_id": "hsbc_everymile_other_designated",
       "tier": null
     }
   ],
