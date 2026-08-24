@@ -18,6 +18,7 @@ export function rewardRule(overrides: Partial<RewardRule> = {}): RewardRule {
     rule_id: 'demo_card_online',
     label: '網上簽賬',
     match: {
+      scope: 'criteria',
       channel: ['online'],
       currency: null,
       mcc_include: null,

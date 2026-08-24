@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cap, Eligibility, Id, MatchCriteria, Provenance, TierPeriod } from './common.ts';
+import { Cap, Eligibility, Id, MatchCriteria, matchScopeIssue, Provenance, TierPeriod } from './common.ts';
 
 export const RewardType = z.enum(['cash_rebate', 'points', 'miles']);
 export type RewardType = z.infer<typeof RewardType>;
@@ -87,6 +87,11 @@ export const RewardRule = RewardRuleBase.superRefine((rule, ctx) => {
     requireOnly('points_per_hkd');
   } else {
     requireOnly('hkd_per_mile');
+  }
+
+  const scopeIssue = matchScopeIssue(rule.match);
+  if (scopeIssue) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['match', 'scope'], message: scopeIssue });
   }
 
   if (rule.tier && rule.tier.max_spend !== null && rule.tier.max_spend <= rule.tier.min_spend) {

@@ -11,6 +11,7 @@ export const provenance: Provenance = {
 };
 
 export const emptyMatch = {
+  scope: 'criteria' as const,
   channel: null,
   currency: null,
   mcc_include: null,

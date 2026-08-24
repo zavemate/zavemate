@@ -45,7 +45,33 @@ export const Currency = z.enum(['HKD', 'FOREIGN']);
 export type Currency = z.infer<typeof Currency>;
 
 /** null = 不限制。空 array = 明確地一個都唔包（罕見，但要分得開）。 */
+/**
+ * 呢條 rule 到底適用到邊。
+ *
+ * 加呢個欄位係因為「全部準則都係 null」本來同時代表兩件唔同嘅事：
+ *   - 渣打 Cathay base：真係適用於全部合資格簽賬 ✅ 準確
+ *   - HSBC EveryMile 第 (c) 類（八達通增值／網上繳費／超市／保費／證券／
+ *     租金／廣告）：我哋根本表達唔到個範圍 ❌ 但 schema 上面斷言咗「適用於全部」
+ *
+ * 撈埋咗嘅後果唔止係計算層——就算永遠冇 /best-card，個事實層今日已經喺度
+ * 講緊一句假話。而事實層就係成個產品。
+ *
+ * 「同時 match 到幾條 rule 嗰陣點揀」係另一個問題（優先次序），留返 Phase 5
+ * 有真嘅 /best-card 先設計，唔好而家憑空估。
+ */
+export const MatchScope = z.enum([
+  /** 適用於全部合資格簽賬。注意：一條「其他簽賬」rule 都算 all——指定商戶簽賬爆咗 cap 之後一樣會跌落嚟。 */
+  'all',
+  /** 由下面啲準則界定。 */
+  'criteria',
+  /** 官方有講範圍，但我哋表達唔到（例如淨係得類別名，冇 MCC 清單）。deterministic 引擎唔准自己套用呢條。 */
+  'undetermined',
+]);
+export type MatchScope = z.infer<typeof MatchScope>;
+
 export const MatchCriteria = z.strictObject({
+  /** 冇 default——每條 rule 都要明確 declare。「全 null」呢個現況本身就係從來冇人認真 declare 過嘅結果。 */
+  scope: MatchScope,
   channel: z.array(Channel).nullable(),
   currency: z.array(Currency).nullable(),
   mcc_include: z.array(z.string().regex(/^\d{4}$/)).nullable(),
@@ -55,6 +81,26 @@ export const MatchCriteria = z.strictObject({
   min_spend_per_txn: z.number().nonnegative().nullable(),
 });
 export type MatchCriteria = z.infer<typeof MatchCriteria>;
+
+/** scope 同實際準則要對得上，否則個 scope 就係一句冇人核實過嘅斷言。 */
+export function matchScopeIssue(match: MatchCriteria): string | null {
+  const hasCriteria =
+    match.channel !== null ||
+    match.currency !== null ||
+    match.mcc_include !== null ||
+    match.mcc_exclude !== null ||
+    match.merchant_include !== null ||
+    match.merchant_exclude !== null ||
+    match.min_spend_per_txn !== null;
+
+  if (match.scope === 'criteria' && !hasCriteria) {
+    return 'match.scope = "criteria" 但一個準則欄位都冇填——即係實際上冇界定到範圍';
+  }
+  if (match.scope !== 'criteria' && hasCriteria) {
+    return `match.scope = "${match.scope}" 但填咗準則欄位——有準則就應該係 "criteria"`;
+  }
+  return null;
+}
 
 export const CapUnit = z.enum(['reward', 'spend']);
 export type CapUnit = z.infer<typeof CapUnit>;

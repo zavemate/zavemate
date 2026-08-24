@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cap, Id, MatchCriteria, Provenance } from './common.ts';
+import { Cap, Id, MatchCriteria, matchScopeIssue, Provenance } from './common.ts';
 
 export const PromotionRewardType = z.enum([
   'rate_multiplier',
@@ -51,6 +51,11 @@ export const PromotionBase = z.strictObject({
 });
 
 export const Promotion = PromotionBase.superRefine((promo, ctx) => {
+  const scopeIssue = matchScopeIssue(promo.match);
+  if (scopeIssue) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['match', 'scope'], message: scopeIssue });
+  }
+
   const { type, rate, multiplier, bonus_amount, hkd_per_mile } = promo.reward;
   const required: Record<PromotionRewardType, 'rate' | 'multiplier' | 'bonus_amount' | 'hkd_per_mile'> = {
     rate_multiplier: 'multiplier',

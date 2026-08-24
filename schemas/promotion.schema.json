@@ -182,9 +182,18 @@
                   "type": "null"
                 }
               ]
+            },
+            "scope": {
+              "enum": [
+                "all",
+                "criteria",
+                "undetermined"
+              ],
+              "type": "string"
             }
           },
           "required": [
+            "scope",
             "channel",
             "currency",
             "mcc_include",
