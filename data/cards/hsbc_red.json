@@ -39,10 +39,10 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": null,
+        "content_hash": "dd842261ad769f29b814eb1bd45de854bfad9391fe5cd1e43b73894dcc61e139",
         "evidence_excerpt": "滙豐信用卡之基本獎賞為每港幣 250 元合資格簽賬可享$1「獎賞錢」",
-        "last_checked_at": null,
-        "last_verified_at": null,
+        "last_checked_at": "2026-08-23T20:53:24.889Z",
+        "last_verified_at": "2026-08-23T20:53:24.889Z",
         "source_url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
       },
       "registration_url": null,
@@ -68,8 +68,10 @@
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
     },
     {
+      "etag": null,
       "is_authoritative": true,
       "language": "en",
+      "last_modified": null,
       "note": "同上。產品頁「4%」出現 9 次但我哋一條 rule 都冇，scheme 條款未搵到（候選 reward-scheme-terms-and-conditions.pdf 係圖片型 PDF，4 頁只抽到 101 字元）。",
       "purpose": "programme_base",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/rewards/terms-and-conditions.pdf"
