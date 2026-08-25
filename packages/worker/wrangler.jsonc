@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zavemate-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+
+  // R2 存 snapshot（v/{sha}/*）同 change stream（changes/{year}.jsonl）。
+  "r2_buckets": [
+    {
+      "binding": "SNAPSHOTS",
+      "bucket_name": "zavemate-snapshots"
+    }
+  ],
+
+  // KV 淨係存一個 key：latest_version = {sha}。
+  //
+  // 點解唔擺喺 R2：每個 agent 每次開工都會打 /v1/latest，KV 喺 edge 讀係最平；
+  // 而且佢係成個系統入面唯一一個「會變」嘅指標，同 immutable 嘅 snapshot 分開
+  // 存，語義上更清楚。
+  //
+  // id 要 wrangler kv namespace create 之後填返。
+  "kv_namespaces": [
+    {
+      "binding": "STATE",
+      "id": "PLACEHOLDER_RUN_wrangler_kv_namespace_create_STATE"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}
