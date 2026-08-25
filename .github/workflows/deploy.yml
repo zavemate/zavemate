@@ -1,0 +1,73 @@
+name: deploy
+
+# Merge 落 main 就重新 build + 上傳 + 部署（§8 Phase 3 acceptance：
+# 「Merge 後 60 秒內 R2 有新 snapshot」）。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# 唔好兩個 deploy 撞埋。cancel-in-progress: false——中途 cancel 可能停喺
+# 「上傳咗一半」，寧願排隊等。
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_BUCKET: zavemate-snapshots
+      WRANGLER_CONFIG: packages/worker/wrangler.jsonc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # change stream 由 git history 重建，一定要完整 history。
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 資料壞就唔好部署。snapshot 係對外嘅事實層，寧願舊資料多留一陣。
+      - name: 驗證資料
+        run: npm run validate:data
+
+      # --rebuild-changes 而唔係增量：CI 每次都由乾淨 workspace 開始，dist/
+      # 係 gitignore 嘅，所以本機根本冇上一次嘅 changes/{year}.jsonl。行增量
+      # 就會淨係寫今個 commit 嘅 event，然後用一個殘缺 stream 覆蓋 R2 上面
+      # 完整嗰個。
+      #
+      # 每次由 commit 1 重建有個好處：條 stream 永遠同 git history 一致，
+      # 有任何唔對數都自動修正。代價係要行晒所有掂過 data/ 嘅 commit——
+      # 去到幾千個 commit 會開始慢，到時再改成「先由 R2 落載現有 stream 再
+      # append」。
+      - name: Build snapshot + change stream，上傳去 R2
+        run: npm run build:snapshot -- --rebuild-changes --upload
+
+      # ⚠️ 次序好重要：一定要上傳完先更新 latest_version。
+      # 掉轉做嘅話，/v1/latest 會指住一個啲檔案仲未上傳好嘅版本，agent 攞到 404。
+      - name: 更新 latest_version
+        run: |
+          SHA=$(git rev-parse --short=7 HEAD)
+          npx wrangler kv key put latest_version "$SHA" --binding STATE --config "$WRANGLER_CONFIG" --remote
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+
+      - name: 部署 Worker
+        run: npx wrangler deploy --config "$WRANGLER_CONFIG"
+
+      # 真係打一次 API 確認條鏈路通晒，唔係淨係信 wrangler 話成功。
+      - name: 驗證線上版本
+        run: |
+          LIVE=$(curl -sS --retry 3 --retry-delay 5 https://zavemate-api.zavemate.workers.dev/v1/latest \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          echo "線上版本：$LIVE　期望：$SHA"
+          [ "$LIVE" = "$SHA" ]
