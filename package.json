@@ -18,9 +18,12 @@
     "validate:data": "tsx packages/schema/src/cli/validate.ts",
     "test": "vitest run",
     "discover": "tsx packages/agent1-base/src/discover-cli.ts",
-    "build:snapshot": "tsx packages/build/src/cli.ts"
+    "build:snapshot": "tsx packages/build/src/cli.ts",
+    "worker:dev": "wrangler dev --config packages/worker/wrangler.jsonc",
+    "worker:deploy": "wrangler deploy --config packages/worker/wrangler.jsonc"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260825.1",
     "@types/node": "^22.10.0",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
