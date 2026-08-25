@@ -1,4 +1,4 @@
-import type { Card, Provenance, RewardRule } from '@zavemate/schema';
+import type { Card, Promotion, Provenance, RewardRule } from '@zavemate/schema';
 
 export const provenance: Provenance = {
   confidence: 'official',
@@ -53,4 +53,34 @@ export function card(overrides: Partial<Card> = {}): Card {
     provenance,
     ...overrides,
   };
+}
+
+export function promotion(overrides: Partial<Promotion> = {}): Promotion {
+  return {
+    promotion_id: 'demo_card_2026q3_online',
+    card_id: 'demo_card',
+    title: '網上簽賬額外回贈',
+    description: null,
+    match: {
+      scope: 'criteria',
+      channel: ['online'],
+      currency: null,
+      mcc_include: null,
+      mcc_exclude: null,
+      merchant_include: null,
+      merchant_exclude: null,
+      min_spend_per_txn: null,
+    },
+    reward: { type: 'flat_rate', rate: 0.08, multiplier: null, bonus_amount: null, hkd_per_mile: null },
+    cap: { pool_id: 'demo_promo_cap', value: 1000, unit: 'spend', period: 'month', shared_with: [] },
+    stacking: { stackable_with_base: true, stack_group: null, priority: 0 },
+    start_date: '2026-07-01',
+    end_date: '2026-12-31',
+    requires_registration: false,
+    registration_url: null,
+    new_customer_only: false,
+    active: true,
+    provenance,
+    ...overrides,
+  } as Promotion;
 }
