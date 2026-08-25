@@ -17,12 +17,11 @@
   // 點解唔擺喺 R2：每個 agent 每次開工都會打 /v1/latest，KV 喺 edge 讀係最平；
   // 而且佢係成個系統入面唯一一個「會變」嘅指標，同 immutable 嘅 snapshot 分開
   // 存，語義上更清楚。
-  //
-  // id 要 wrangler kv namespace create 之後填返。
+
   "kv_namespaces": [
     {
       "binding": "STATE",
-      "id": "PLACEHOLDER_RUN_wrangler_kv_namespace_create_STATE"
+      "id": "43691d95a889452fa4ace471b64fe4fa"
     }
   ],
 
