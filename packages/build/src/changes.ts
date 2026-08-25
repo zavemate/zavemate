@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { diffCards, type FieldChange } from '@zavemate/core';
-import type { Card, RewardRule } from '@zavemate/schema';
+import { diffCards, diffPromotions, type FieldChange } from '@zavemate/core';
+import type { Card, Promotion, RewardRule } from '@zavemate/schema';
 import { repoRoot } from './load.ts';
 
 /**
@@ -24,6 +24,7 @@ export interface ChangeEvent {
   detected_at: string;
   card_id: string;
   rule_id: string | null;
+  promotion_id: string | null;
   type: FieldChange['type'];
   field: string;
   old: unknown;
@@ -68,6 +69,26 @@ export function readCardsAtRef(ref: string, root: string = repoRoot): Map<string
   return cards;
 }
 
+/** 某個 commit 嗰陣 data/promotions/ 入面有咩。 */
+export function readPromotionsAtRef(ref: string, root: string = repoRoot): Map<string, Promotion> {
+  const promotions = new Map<string, Promotion>();
+  let listing: string;
+  try {
+    listing = git(['ls-tree', '--name-only', ref, 'data/promotions/'], root);
+  } catch {
+    return promotions;
+  }
+  for (const path of listing.split('\n').filter((line) => line.endsWith('.json'))) {
+    try {
+      const raw = JSON.parse(git(['show', `${ref}:${path}`], root)) as Promotion;
+      if (raw?.promotion_id) promotions.set(raw.promotion_id, raw);
+    } catch {
+      // 同 card 一樣：歷史係盡力還原，唔係驗證。
+    }
+  }
+  return promotions;
+}
+
 /** commit message 尾嘅 "(#123)"——squash merge 會自動加。攞唔到就 null。 */
 export function parsePrNumber(subject: string): number | null {
   const match = subject.match(/\(#(\d+)\)\s*$/);
@@ -82,7 +103,21 @@ type Enrichment = Pick<ChangeEvent, 'effective_from' | 'confidence' | 'source_ur
  * §9：唔可以由 API response 剝走 provenance——change stream 一樣係 API response。
  * 「HSBC 減咗 cap」冇出處同證據，同傳聞冇分別。
  */
-function enrich(change: FieldChange, newCards: Map<string, Card>): Enrichment {
+function enrich(
+  change: FieldChange,
+  newCards: Map<string, Card>,
+  newPromotions: Map<string, Promotion>,
+): Enrichment {
+  if (change.promotion_id) {
+    const promo = newPromotions.get(change.promotion_id);
+    return {
+      // promotion 用 start_date 做「幾時開始生效」——同 rule 嘅 effective_from 同一個意思。
+      effective_from: promo?.start_date ?? null,
+      confidence: promo?.provenance.confidence ?? null,
+      source_url: promo?.provenance.source_url ?? null,
+      evidence_excerpt: promo?.provenance.evidence_excerpt ?? null,
+    };
+  }
   const card = newCards.get(change.card_id);
   const rule = change.rule_id === null ? undefined : card?.rewards?.find((r: RewardRule) => r.rule_id === change.rule_id);
   const provenance = rule?.provenance ?? card?.provenance;
@@ -111,6 +146,8 @@ export function changeEventsForCommit(commit: CommitInfo, root: string = repoRoo
 
   const oldCards = parent === '' ? new Map<string, Card>() : readCardsAtRef(parent, root);
   const newCards = readCardsAtRef(commit.sha, root);
+  const oldPromotions = parent === '' ? new Map<string, Promotion>() : readPromotionsAtRef(parent, root);
+  const newPromotions = readPromotionsAtRef(commit.sha, root);
 
   const changes: FieldChange[] = [];
   for (const [cardId, newCard] of newCards) {
@@ -130,20 +167,29 @@ export function changeEventsForCommit(commit: CommitInfo, root: string = repoRoo
     });
   }
 
+  for (const [promotionId, newPromo] of newPromotions) {
+    changes.push(...diffPromotions(oldPromotions.get(promotionId) ?? null, newPromo));
+  }
+  for (const [promotionId, oldPromo] of oldPromotions) {
+    if (newPromotions.has(promotionId)) continue;
+    changes.push(...diffPromotions(oldPromo, null));
+  }
+
   const pr = parsePrNumber(commit.subject);
   const short = commit.sha.slice(0, 7);
   return changes.map((change) => ({
-    change_id: `${short}:${change.card_id}:${change.rule_id ?? '-'}:${change.field}`,
+    change_id: `${short}:${change.card_id}:${change.promotion_id ?? change.rule_id ?? '-'}:${change.field}`,
     commit: short,
     detected_at: commit.committedAt,
     card_id: change.card_id,
     rule_id: change.rule_id,
+    promotion_id: change.promotion_id ?? null,
     type: change.type,
     field: change.field,
     old: change.old,
     new: change.new,
     pct_change: change.pct_change,
-    ...enrich(change, newCards),
+    ...enrich(change, newCards, newPromotions),
     pr,
   }));
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { describeChange, diffCards } from '../diff.ts';
-import { card, provenance, rewardRule } from './fixtures.ts';
+import { describeChange, diffCards, diffPromotions } from '../diff.ts';
+import { card, promotion, provenance, rewardRule } from './fixtures.ts';
 
 describe('diffCards', () => {
   it('新卡 → 一個 card_added', () => {
@@ -128,5 +128,73 @@ describe('confidence_changed', () => {
 
   it('confidence 冇變 → 唔會出（唔好用 metadata 雜訊浸死條 stream）', () => {
     expect(diffCards(card(), card()).some((c) => c.type === 'confidence_changed')).toBe(false);
+  });
+});
+
+describe('diffPromotions', () => {
+  it('全新優惠 → promotion_added', () => {
+    const changes = diffPromotions(null, promotion());
+    expect(changes).toHaveLength(1);
+    expect(changes[0]!.type).toBe('promotion_added');
+    expect(changes[0]!.promotion_id).toBe('demo_card_2026q3_online');
+    expect(changes[0]!.rule_id).toBeNull(); // promotion_id 同 rule_id 唔可以撈埋
+  });
+
+  it('銀行靜靜延期 → promotion_extended', () => {
+    // §6.5 講明「銀行成日靜靜延期」，所以延期同腰斬要分得出。
+    const changes = diffPromotions(promotion(), promotion({ end_date: '2027-06-30' }));
+    expect(changes.map((c) => c.type)).toContain('promotion_extended');
+  });
+
+  it('官方提早取消 → promotion_shortened（唔可以同延期撈埋）', () => {
+    const changes = diffPromotions(promotion(), promotion({ end_date: '2026-09-30' }));
+    const change = changes.find((c) => c.type === 'promotion_shortened')!;
+    expect(change.old).toBe('2026-12-31');
+    expect(change.new).toBe('2026-09-30');
+  });
+
+  it('active true → false → promotion_deactivated', () => {
+    const changes = diffPromotions(promotion(), promotion({ active: false }));
+    expect(changes.map((c) => c.type)).toContain('promotion_deactivated');
+  });
+
+  it('個檔冇咗 → promotion_removed，而且描述講明呢個係異常', () => {
+    // §6.5：過期都唔好刪檔，改 active: false。所以檔真係冇咗要有人睇。
+    const changes = diffPromotions(promotion(), null);
+    expect(changes[0]!.type).toBe('promotion_removed');
+    expect(describeChange(changes[0]!)).toContain('唔好刪檔');
+  });
+
+  it('回贈率改咗 → rate_changed', () => {
+    const changes = diffPromotions(
+      promotion(),
+      promotion({ reward: { type: 'flat_rate', rate: 0.05, multiplier: null, bonus_amount: null, hkd_per_mile: null } }),
+    );
+    expect(changes.map((c) => c.type)).toContain('rate_changed');
+  });
+
+  it('上限跌咗 → cap_changed，連 pct_change', () => {
+    const changes = diffPromotions(
+      promotion(),
+      promotion({ cap: { pool_id: 'demo_promo_cap', value: 500, unit: 'spend', period: 'month', shared_with: [] } }),
+    );
+    const change = changes.find((c) => c.type === 'cap_changed')!;
+    expect(change.pct_change).toBeCloseTo(-0.5);
+  });
+
+  it('confidence 跌咗 → confidence_changed', () => {
+    const changes = diffPromotions(
+      promotion(),
+      promotion({ provenance: { ...provenance, confidence: 'unconfirmed' } }),
+    );
+    expect(changes.map((c) => c.type)).toContain('confidence_changed');
+  });
+
+  it('冇改動 → 空陣列', () => {
+    expect(diffPromotions(promotion(), promotion())).toEqual([]);
+  });
+
+  it('兩邊都 null → 空陣列', () => {
+    expect(diffPromotions(null, null)).toEqual([]);
   });
 });

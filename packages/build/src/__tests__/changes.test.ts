@@ -11,6 +11,7 @@ function event(overrides: Partial<ChangeEvent> = {}): ChangeEvent {
     detected_at: '2026-08-24T00:00:00.000Z',
     card_id: 'demo_card',
     rule_id: 'demo_rule',
+    promotion_id: null,
     type: 'rate_changed',
     field: 'reward',
     old: 0.04,
@@ -98,6 +99,19 @@ describe('rebuildAllChangeEvents（行真 git history）', () => {
     expect(
       events.some((e) => e.type === 'confidence_changed' && e.old === 'official' && e.new === 'unconfirmed'),
     ).toBe(true);
+  });
+
+  it('promotion 改動一樣會出 event（Agent 2 會大量產生呢類改動）', () => {
+    const promoEvents = events.filter((e) => e.promotion_id !== null);
+    expect(promoEvents.length).toBeGreaterThan(0);
+    expect(promoEvents.some((e) => e.type === 'promotion_added')).toBe(true);
+  });
+
+  it('promotion event 用 start_date 做 effective_from，provenance 一樣要有', () => {
+    const promoEvent = events.find((e) => e.type === 'promotion_added')!;
+    expect(promoEvent.source_url).toMatch(/^https?:\/\//);
+    expect(promoEvent.confidence).not.toBeNull();
+    expect(promoEvent.rule_id).toBeNull(); // promotion 唔應該借用 rule_id
   });
 
   it('change_id 唔會重複（重跑 build 唔會出重複行）', () => {

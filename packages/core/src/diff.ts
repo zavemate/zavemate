@@ -1,4 +1,4 @@
-import type { Card, RewardRule } from '@zavemate/schema';
+import type { Card, Promotion, RewardRule } from '@zavemate/schema';
 
 /**
  * 將新舊 Card 之間嘅分別，翻譯做人睇得明嘅變動列表——直接放入 PR body（§9 必須做 3）
@@ -16,11 +16,19 @@ export type ChangeType =
   | 'cap_changed'
   | 'effective_date_changed'
   | 'confidence_changed' // provenance.confidence 變咗（official ↔ unconfirmed ↔ crowdsourced）
+  | 'promotion_added'
+  | 'promotion_deactivated' // active true → false（過期或者官方提早取消）
+  | 'promotion_reactivated'
+  | 'promotion_removed' // 成個檔冇咗。§6.5 講明過期都唔好刪檔，所以呢個係異常，要人睇
+  | 'promotion_extended' // end_date 推遲——銀行成日靜靜延期
+  | 'promotion_shortened'
   | 'field_changed'; // catch-all：annual_fee、fx_fee_rate、card_name、eligibility、match 等
 
 export interface FieldChange {
   card_id: string;
   rule_id: string | null; // null = card 層面嘅改動
+  /** 淨係 promotion 改動先有。同 rule_id 分開，唔好撈埋——兩者係唔同嘅嘢。 */
+  promotion_id?: string | null;
   type: ChangeType;
   field: string;
   old: unknown;
@@ -255,9 +263,136 @@ export function diffCards(oldCard: Card | null, newCard: Card): FieldChange[] {
   return changes;
 }
 
+
+/**
+ * Promotion 嘅改動。
+ *
+ * 點解要獨立寫一個而唔係硬塞入 diffCards：promotion 有自己嘅生命週期
+ * （active、start_date/end_date、延期／提早取消），而 §6.5 講明過期都唔好刪檔。
+ * 「銀行靜靜延期」同「銀行提早腰斬」對用戶係兩件完全唔同嘅事，撈埋做
+ * field_changed 就分唔出。
+ */
+export function diffPromotions(oldPromo: Promotion | null, newPromo: Promotion | null): FieldChange[] {
+  if (oldPromo === null && newPromo === null) return [];
+
+  if (oldPromo === null) {
+    return [
+      {
+        card_id: newPromo!.card_id,
+        rule_id: null,
+        promotion_id: newPromo!.promotion_id,
+        type: 'promotion_added',
+        field: 'promotion',
+        old: null,
+        new: newPromo!.promotion_id,
+        pct_change: null,
+      },
+    ];
+  }
+
+  if (newPromo === null) {
+    // §6.5：過期都唔好刪檔，改 active: false。所以檔真係冇咗係異常，唔係正常流程。
+    return [
+      {
+        card_id: oldPromo.card_id,
+        rule_id: null,
+        promotion_id: oldPromo.promotion_id,
+        type: 'promotion_removed',
+        field: 'promotion',
+        old: oldPromo.promotion_id,
+        new: null,
+        pct_change: null,
+      },
+    ];
+  }
+
+  const changes: FieldChange[] = [];
+  const base = { card_id: newPromo.card_id, rule_id: null, promotion_id: newPromo.promotion_id };
+
+  if (oldPromo.active && !newPromo.active) {
+    changes.push({ ...base, type: 'promotion_deactivated', field: 'active', old: true, new: false, pct_change: null });
+  } else if (!oldPromo.active && newPromo.active) {
+    changes.push({ ...base, type: 'promotion_reactivated', field: 'active', old: false, new: true, pct_change: null });
+  }
+
+  // 延期 vs 提早取消要分開報。銀行成日靜靜延期，而提早腰斬係用戶會即刻蝕錢嗰種。
+  if (oldPromo.end_date !== newPromo.end_date) {
+    const extended = oldPromo.end_date !== null && newPromo.end_date !== null && newPromo.end_date > oldPromo.end_date;
+    changes.push({
+      ...base,
+      type: extended ? 'promotion_extended' : 'promotion_shortened',
+      field: 'end_date',
+      old: oldPromo.end_date,
+      new: newPromo.end_date,
+      pct_change: null,
+    });
+  }
+
+  if (oldPromo.start_date !== newPromo.start_date) {
+    changes.push({
+      ...base,
+      type: 'effective_date_changed',
+      field: 'start_date',
+      old: oldPromo.start_date,
+      new: newPromo.start_date,
+      pct_change: null,
+    });
+  }
+
+  if (fieldChanged(oldPromo.reward, newPromo.reward)) {
+    changes.push({
+      ...base,
+      type: 'rate_changed',
+      field: 'reward',
+      old: oldPromo.reward,
+      new: newPromo.reward,
+      pct_change: null,
+    });
+  }
+
+  if (oldPromo.cap === null && newPromo.cap !== null) {
+    changes.push({ ...base, type: 'cap_added', field: 'cap', old: null, new: newPromo.cap, pct_change: null });
+  } else if (oldPromo.cap !== null && newPromo.cap === null) {
+    changes.push({ ...base, type: 'cap_removed', field: 'cap', old: oldPromo.cap, new: null, pct_change: null });
+  } else if (oldPromo.cap !== null && newPromo.cap !== null && fieldChanged(oldPromo.cap, newPromo.cap)) {
+    changes.push({
+      ...base,
+      type: 'cap_changed',
+      field: 'cap.value',
+      old: oldPromo.cap,
+      new: newPromo.cap,
+      pct_change: oldPromo.cap.unit === newPromo.cap.unit ? pctChange(oldPromo.cap.value, newPromo.cap.value) : null,
+    });
+  }
+
+  if (oldPromo.provenance.confidence !== newPromo.provenance.confidence) {
+    changes.push({
+      ...base,
+      type: 'confidence_changed',
+      field: 'provenance.confidence',
+      old: oldPromo.provenance.confidence,
+      new: newPromo.provenance.confidence,
+      pct_change: null,
+    });
+  }
+
+  const otherFields: Array<keyof Promotion> = ['title', 'match', 'stacking', 'requires_registration', 'new_customer_only'];
+  for (const field of otherFields) {
+    if (fieldChanged(oldPromo[field], newPromo[field])) {
+      changes.push({ ...base, type: 'field_changed', field, old: oldPromo[field], new: newPromo[field], pct_change: null });
+    }
+  }
+
+  return changes;
+}
+
 /** 人睇嘅一行描述，直接放入 PR body。 */
 export function describeChange(change: FieldChange): string {
-  const target = change.rule_id ? `${change.card_id}/${change.rule_id}` : change.card_id;
+  const target = change.rule_id
+    ? `${change.card_id}/${change.rule_id}`
+    : change.promotion_id
+      ? `${change.card_id}/${change.promotion_id}`
+      : change.card_id;
   const pct = change.pct_change !== null ? `（${(change.pct_change * 100).toFixed(1)}%）` : '';
 
   switch (change.type) {
@@ -285,5 +420,17 @@ export function describeChange(change: FieldChange): string {
       return `${target}：confidence 由 ${change.old} 變 ${change.new}`;
     case 'field_changed':
       return `${target}：${change.field} 由 ${JSON.stringify(change.old)} 變 ${JSON.stringify(change.new)}`;
+    case 'promotion_added':
+      return `${change.card_id}：新增優惠 ${change.promotion_id}`;
+    case 'promotion_deactivated':
+      return `${change.card_id}/${change.promotion_id}：優惠已失效`;
+    case 'promotion_reactivated':
+      return `${change.card_id}/${change.promotion_id}：優惠重新生效`;
+    case 'promotion_removed':
+      return `${change.card_id}/${change.promotion_id}：⚠️ 優惠檔案被刪走（§6.5 應該改 active: false，唔好刪檔）`;
+    case 'promotion_extended':
+      return `${change.card_id}/${change.promotion_id}：優惠延期，end_date 由 ${change.old} 推遲到 ${change.new}`;
+    case 'promotion_shortened':
+      return `${change.card_id}/${change.promotion_id}：優惠提早結束，end_date 由 ${change.old} 改做 ${change.new}`;
   }
 }
