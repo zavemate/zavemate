@@ -65,9 +65,14 @@ jobs:
         run: npx wrangler deploy --config "$WRANGLER_CONFIG"
 
       # 真係打一次 API 確認條鏈路通晒，唔係淨係信 wrangler 話成功。
+      #
+      # 一定要打正式網域（§7.8 承諾俾 agent 嗰個），唔好打 workers.dev。
+      # 2026-08-26 搬 Cloudflare 帳戶嗰陣，呢度仲寫死住舊帳戶條 workers.dev
+      # URL——部署明明成功咗，但驗證讀返嘅係舊帳戶嗰個 Worker，永遠對唔上。
+      # 打正式網域先真係驗到「agent 攞到嘅嘢啱唔啱」。
       - name: 驗證線上版本
         run: |
-          LIVE=$(curl -sS --retry 3 --retry-delay 5 https://zavemate-api.zavemate.workers.dev/v1/latest \
+          LIVE=$(curl -sS --retry 5 --retry-delay 5 https://api.zavemate.com/v1/latest \
             | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
           echo "線上版本：$LIVE　期望：$SHA"
           [ "$LIVE" = "$SHA" ]
