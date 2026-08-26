@@ -21,7 +21,24 @@
   "kv_namespaces": [
     {
       "binding": "STATE",
-      "id": "43691d95a889452fa4ace471b64fe4fa"
+      "id": "16ccc766984845c0a02fc1a6c2d7f90f"
+    }
+  ],
+
+  // §7.8：REST API 用 api. 呢個獨立 subdomain。URL 一旦俾 agent 記低同快取，
+  // 改起上嚟好痛，所以要一開始就定好，唔好用 workers.dev 出街。
+  //
+  // custom_domain: true 會叫 wrangler 自己開埋 DNS record，唔使去 dashboard 撳
+  // ——咁個設定就入咗 git，唔會變成一個只存在於 dashboard 嘅隱形設定。
+  // 一有 routes，wrangler 就會預設熄咗 workers.dev。留返佢做後備：custom domain
+  // 出事嗰陣（例如 token 少咗 Zone → Workers Routes 權限）唔會變成成個 Worker
+  // 冇任何 route、對外直接 404。
+  "workers_dev": true,
+
+  "routes": [
+    {
+      "pattern": "api.zavemate.com",
+      "custom_domain": true
     }
   ],
 
