@@ -20,6 +20,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     ended_early: false,
     reward_includes_base: true,
     looks_like_base_terms: false,
+    is_publisher_offer: false,
     official_source_url: null,
     confidence: 'official',
     evidence_excerpt: '網上簽賬 4%',

@@ -39,6 +39,21 @@ describe('buildPromoSystemPrompt', () => {
     expect(buildPromoSystemPrompt(base)).not.toContain('唔可以填 "official"');
   });
 
+  it('冇 end_date 嗰條規則唔可以同「第三方一律 crowdsourced」打交', () => {
+    // 舊版規則 3 淨係寫「冇明確結束日期就 confidence 填 unconfirmed」，同上面
+    // 「第三方一律 crowdsourced」直接矛盾。第三方嗰條贏（apply.ts 本身都係
+    // 噉行——crowdsourced 唔會再被降級），所以規則 3 要講明佢分官方定第三方。
+    const prompt = buildPromoSystemPrompt({ ...base, sourceType: 'third_party' });
+    expect(prompt).toContain('呢條規則唔會令佢變');
+    expect(prompt).toContain('官方來源冇明確結束日期就填 "unconfirmed"');
+  });
+
+  it('講明點認「攻略站自己俾嘅著數」', () => {
+    const prompt = buildPromoSystemPrompt(base);
+    expect(prompt).toContain('is_publisher_offer');
+    expect(prompt).toContain('唔經呢個網站做嘢仲攞唔攞到');
+  });
+
   it('講明冇明確結束日期唔好估', () => {
     expect(buildPromoSystemPrompt(base)).toContain('唔好估');
   });
@@ -79,6 +94,7 @@ describe('PromoExtractionResult schema', () => {
     ended_early: false,
     reward_includes_base: true,
     looks_like_base_terms: false,
+    is_publisher_offer: false,
     official_source_url: null,
     confidence: 'official',
     evidence_excerpt: '網上簽賬 4%「獎賞錢」回贈',

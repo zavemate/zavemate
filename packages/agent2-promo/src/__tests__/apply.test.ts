@@ -24,6 +24,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     ended_early: false,
     reward_includes_base: true,
     looks_like_base_terms: false,
+    is_publisher_offer: false,
     official_source_url: null,
     confidence: 'official',
     evidence_excerpt: '網上簽賬 4%「獎賞錢」回贈',
@@ -115,6 +116,30 @@ describe('§6.5 特殊情況', () => {
   it('slug 唔係 ASCII → 唔寫入，唔會砌個爛 id', () => {
     const result = applyExtractedPromotions(input({ extracted: [extracted({ slug: '指定商戶' })] }));
     expect(result.updated.size).toBe(0);
+  });
+});
+
+describe('攻略站自己俾嘅著數', () => {
+  it('is_publisher_offer → 唔寫入，出 attention note', () => {
+    // 真實個案：hkcashrebate 篇渣打 Smart 卡文夾住一段「新客經本網以下指定
+    // 連結成功申請並填妥換領表格，額外送 $1,500 Apple 禮品卡」。嗰個係佢哋
+    // 自己嘅 affiliate 獎賞，唔經佢條 link 就冇，銀行條款永遠核實唔到。
+    const result = applyExtractedPromotions(
+      input({
+        extracted: [
+          extracted({ is_publisher_offer: true, title: '經指定連結申請額外送$1,500禮品卡', slug: 'referral_giftcard' }),
+        ],
+      }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('唔係銀行推廣');
+  });
+
+  it('銀行自己俾嘅迎新照收——唔可以連正常優惠都擋埋', () => {
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ is_publisher_offer: false, title: '簽$3,500送$1,000回贈' })] }),
+    );
+    expect(result.updated.size).toBe(1);
   });
 });
 

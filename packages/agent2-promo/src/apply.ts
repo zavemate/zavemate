@@ -72,6 +72,18 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
       continue;
     }
 
+    // §6.5：篇文嗰個網站自己俾嘅著數，唔係銀行俾——唔屬於事實層。
+    //
+    // 唔經佢條 affiliate link 就冇，佢改咗又冇，而且銀行嘅官方條款永遠核實
+    // 唔到佢。收咗佢即係我哋對外話「呢個數字嘅出處係一份條款」，但實情個
+    // 出處係一個推薦推廣。
+    if (promo.is_publisher_offer) {
+      attentionNeeded.push(
+        `「${promo.title}」係 ${new URL(input.sourceUrl).hostname} 自己俾嘅著數（要經佢申請先有），唔係銀行推廣——冇寫入`,
+      );
+      continue;
+    }
+
     if (promo.card_id === null) {
       attentionNeeded.push(`「${promo.title}」對唔上任何一張已知嘅卡——冇寫入。可能係我哋未收錄嗰張卡`);
       continue;

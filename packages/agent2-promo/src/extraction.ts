@@ -64,6 +64,20 @@ export const ExtractedPromotion = z.strictObject({
    */
   looks_like_base_terms: z.boolean(),
   /**
+   * 呢個著數係**寫呢篇文嗰個網站自己俾**嘅，唔係發卡銀行俾。
+   *
+   * 第三方攻略站靠 affiliate 過活，成日會喺篇文夾一段「經本網指定連結申請
+   * 再送你 $1,500 禮品卡」。嗰個係佢哋自己嘅推薦獎賞，同張卡本身冇關係：
+   * 唔經佢條 link 就冇，過幾日佢改咗又冇,而且銀行嘅官方條款永遠核實唔到佢。
+   *
+   * 呢種嘢寫入事實層就係錯：我哋對外承諾每個數字都有 source_url 追返去出處，
+   * 而呢個「出處」係一個 affiliate 推廣，唔係一份條款。
+   *
+   * 認佢嘅字眼：「經本網」「經以下指定連結」「透過本站申請」「填妥換領表格」
+   * 「提交批卡截圖」——著數要你經個網站做啲嘢先攞到，就係呢種。
+   */
+  is_publisher_offer: z.boolean(),
+  /**
    * 篇文有冇 link 返去銀行官方條款／優惠頁。有就抄返條 URL。
    *
    * 呢個係 crowdsourced → official 嘅升級路徑。第三方平台快（銀行特登將優惠
@@ -136,8 +150,10 @@ ${existingList}
    一樣要重用返個 slug。
 2. slug 只可以用細楷英文字母、數字同底線（例如 online、designated、dining_hotel）。
    唔可以用中文。
-3. 搵唔到明確嘅結束日期就 end_date 填 null，同時 confidence 填 "unconfirmed"。
-   **唔好估。**「年底前」「暫定」呢啲唔算明確日期。
+3. 搵唔到明確嘅結束日期就 end_date 填 null。**唔好估。**「年底前」「暫定」
+   呢啲唔算明確日期。
+   confidence：第三方來源一律 "crowdsourced"（見上面），呢條規則唔會令佢變。
+   官方來源冇明確結束日期就填 "unconfirmed"。
 4. 官方明文講咗提早結束，ended_early 填 true，end_date 填實際結束嗰日。
 5. 如果段內容睇落係張卡嘅長期回贈結構（例如基本回贈率、常設嘅類別倍數），
    而唔係一個有起訖日嘅推廣，looks_like_base_terms 填 true。呢啲我哋唔會當
@@ -155,7 +171,11 @@ ${existingList}
    嘅嘢我哋核實唔到，要返去源頭。唔好自己砌一條 URL 出嚟。
 10. 每個數值都要喺 evidence_excerpt 俾返支持佢嘅原文節錄。俾唔到就 confidence
    填 "unconfirmed"。
-11. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
+11. is_publisher_offer：如果段著數係**寫呢篇文嗰個網站自己俾**嘅——要你經佢
+   指定連結申請、填佢張換領表格、俾佢批卡截圖先攞到——就填 true。銀行本身
+   俾嘅（迎新、簽賬回贈、指定商戶優惠）填 false。
+   分唔清就睇一句：唔經呢個網站做嘢仲攞唔攞到？攞到 = false。
+12. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
    唔係失敗——唔好為咗交嘢而將長期條款當成優惠。
 
 用 JSON 回覆，一定要符合以下 JSON Schema：

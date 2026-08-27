@@ -45,6 +45,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     ended_early: false,
     reward_includes_base: true,
     looks_like_base_terms: false,
+    is_publisher_offer: false,
     official_source_url: null,
     confidence: 'crowdsourced',
     evidence_excerpt: '夏日餐飲額外 6% 回贈',
