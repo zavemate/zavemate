@@ -48,6 +48,16 @@ describe('buildPromoSystemPrompt', () => {
     expect(prompt).toContain('官方來源冇明確結束日期就填 "unconfirmed"');
   });
 
+  it('講明「適用於多張卡」要逐張交一條，唔係填 null', () => {
+    // 2026-08-27 第一次真跑（PR #153，已 close）就係死喺呢度：「滙豐最紅簽賬
+    // 獎賞」嗰類優惠適用於全部滙豐卡，模型喺「揀一張／逐張交／填 null」之間
+    // 搖擺——同一批文章跑兩次，hsbc_red 變咗 null、三條百老滙變返一條。
+    // 規則 6 原本淨係寫「對唔上就填 null」，冇講「對上太多」點做。
+    const prompt = buildPromoSystemPrompt(base);
+    expect(prompt).toContain('每張卡各交一條');
+    expect(prompt).toContain('唔係「對上太多」');
+  });
+
   it('講明點認「攻略站自己俾嘅著數」', () => {
     const prompt = buildPromoSystemPrompt(base);
     expect(prompt).toContain('is_publisher_offer');
