@@ -1,0 +1,44 @@
+{
+  "active": true,
+  "cap": null,
+  "card_id": "sc_smart",
+  "description": null,
+  "end_date": null,
+  "match": {
+    "channel": null,
+    "currency": null,
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": null,
+    "min_spend_per_txn": null,
+    "scope": "undetermined"
+  },
+  "new_customer_only": false,
+  "promotion_id": "sc_smart_2026q3_smart_welcome_offer",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "渣打Smart卡今期限時迎新，全新渣打信用卡客戶喺批卡後1個月碌滿$3,500，就有$1,000回贈！",
+    "last_checked_at": "2026-08-27T16:18:25.727Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": false,
+  "reward": {
+    "bonus_amount": 1000,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": null,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": false
+  },
+  "start_date": null,
+  "title": "渣打Smart卡迎新：簽$3,500送$1,000回贈"
+}
