@@ -108,7 +108,10 @@ describe('applyWork（unchanged）', () => {
     expect(rule.provenance.confidence).toBe('unconfirmed');
     expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇郁——核實唔到就唔可以話核實過
     expect(rule.provenance.last_checked_at).toBe(NOW); // 但查過就係查過
-    expect(result.attentionNeeded.some((n) => n.includes('evidence_excerpt'))).toBe(true);
+    // applyWork 只負責發現，唔負責修——修要叫 LLM，而佢係純函數。
+    expect(result.evidenceGaps).toHaveLength(1);
+    expect(result.evidenceGaps[0]!.ruleId).toBe('demo_card_online');
+    expect(result.evidenceGaps[0]!.sourceText).toBe(SOURCE); // 帶埋原文，修復 pass 唔使再 fetch
   });
 
   it('內容冇變而 evidence 撐得住 → 照更新 last_verified_at', () => {
@@ -378,7 +381,8 @@ describe('applyWork（extracted）', () => {
     expect(rule.provenance.confidence).toBe('unconfirmed');
     expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇郁
     expect(rule.provenance.evidence_excerpt).toBe('網上簽賬回贈 4%'); // 舊嗰句留返
-    expect(result.attentionNeeded.some((n) => n.includes('evidence_excerpt'))).toBe(true);
+    expect(result.evidenceGaps).toHaveLength(1);
+    expect(result.evidenceGaps[0]!.ruleId).toBe('demo_card_online');
   });
 
   it('found=false → 唔改數值，出 attentionNeeded', () => {
