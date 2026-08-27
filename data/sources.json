@@ -1,4 +1,4 @@
 {
-  "note": "Agent 2 嘅監察來源。Phase 4 先會用到；schema 暫定，到時可能會改。",
+  "note": "Agent 2 嘅監察來源——去邊度搵未知嘅新優惠。同 Card.sources[]（Agent 1 監察張卡自己啲條款）係兩件事，同一條 URL 可以兩邊都有。",
   "sources": []
 }

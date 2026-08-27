@@ -125,8 +125,10 @@ if (!existsSync(sourcesFile)) {
           fail(sourcesFile, [`  source_id "${source.source_id}" 重複`]);
         }
         seen.add(source.source_id);
-        if (source.card_id !== null && !cards.has(source.card_id)) {
-          fail(sourcesFile, [`  source "${source.source_id}" 指住唔存在嘅 card_id "${source.card_id}"`]);
+        for (const cardId of source.card_ids) {
+          if (!cards.has(cardId)) {
+            fail(sourcesFile, [`  source "${source.source_id}" 指住唔存在嘅 card_id "${cardId}"`]);
+          }
         }
       }
     }
