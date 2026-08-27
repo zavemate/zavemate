@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Card, Promotion, Sources } from '@zavemate/schema';
 import type { ExtractedPromotion } from '../extraction.ts';
 import type { PromoPipelineOutcome } from '../pipeline.ts';
-import { runAgent2 } from '../run.ts';
+import { isUsableOfficialSource, runAgent2 } from '../run.ts';
 
 const NOW = new Date('2026-08-27T04:00:00.000Z');
 
@@ -203,5 +203,30 @@ describe('過期清理', () => {
     expect(result.expired).toBe(1);
     const file = captured!.files.find((f) => f.path.includes('hsbc_red_2026q1_old'))!;
     expect(JSON.parse(file.content).active).toBe(false);
+  });
+});
+
+describe('isUsableOfficialSource', () => {
+  const FROM = 'https://hkcashrebate.com/category/promo/feed';
+
+  it('正常官方條款 URL → 收', () => {
+    expect(isUsableOfficialSource('https://www.aeon.com.hk/tc/pdf/privilege/Eat_Live_Ride_TC.pdf', FROM)).toBe(true);
+    expect(isUsableOfficialSource('https://www.icbcasia.com/s/BjInum', FROM)).toBe(true);
+  });
+
+  it('裸首頁 → 唔收（佢冇講緊任何一份條款）', () => {
+    expect(isUsableOfficialSource('https://www.hangseng.com/', FROM)).toBe(false);
+    expect(isUsableOfficialSource('https://www.hangseng.com', FROM)).toBe(false);
+  });
+
+  it('第三方指返自己 → 唔收，就算加咗 www 都唔收', () => {
+    expect(isUsableOfficialSource('https://hkcashrebate.com/hsb-summer', FROM)).toBe(false);
+    expect(isUsableOfficialSource('https://www.hkcashrebate.com/hsb-summer', FROM)).toBe(false);
+  });
+
+  it('唔係 http(s) 或者砌唔成 URL → 唔收', () => {
+    expect(isUsableOfficialSource('javascript:alert(1)', FROM)).toBe(false);
+    expect(isUsableOfficialSource('唔係一條 URL', FROM)).toBe(false);
+    expect(isUsableOfficialSource('https://ok.example/tnc.pdf', '唔係一條 URL')).toBe(false);
   });
 });

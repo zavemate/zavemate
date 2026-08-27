@@ -33,6 +33,46 @@ export interface Agent2RunOptions {
   sourcesFile?: Sources;
 }
 
+/**
+ * 呢條「官方出處」值唔值得入 sources.json。
+ *
+ * 第一次真跑（PR #153，已 close）提議咗四條，兩條係垃圾：
+ *
+ *   ❌ https://www.hangseng.com/           —— 裸首頁，冇 path
+ *   ❌ https://hkcashrebate.com/hsb-summer —— 第三方自己個 URL 標做 official
+ *
+ * 兩種都唔係「壞連結」咁簡單，係會破壞 provenance 嘅語義：
+ *
+ * - **裸首頁**冇講緊任何一份條款。Agent 1 之後會逐星期抓佢、hash 佢、
+ *   當佢係某條 rule 嘅出處——但佢由頭到尾冇寫過嗰個數字。
+ * - **同一個第三方 host** 標做 `source_type: 'official'` 直接推翻咗
+ *   `crowdsourced` 存在嘅前提。呢條升級路徑嘅全部價值就係「返去源頭核實」，
+ *   源頭唔可以係我哋想核實嗰個人。
+ *
+ * 攔喺提議呢一步，因為 sources.json 一寫落去，Agent 1 就會開始當佢係真出處。
+ */
+export function isUsableOfficialSource(url: string, discoveredFrom: string): boolean {
+  let candidate: URL;
+  let origin: URL;
+  try {
+    candidate = new URL(url);
+    origin = new URL(discoveredFrom);
+  } catch {
+    return false;
+  }
+
+  if (candidate.protocol !== 'https:' && candidate.protocol !== 'http:') return false;
+
+  // 裸首頁：`/` 或者空 path。一份條款一定住喺某個 path 度。
+  if (candidate.pathname === '' || candidate.pathname === '/') return false;
+
+  // 同一個 host = 第三方指返自己，唔算官方出處。
+  const strip = (h: string) => h.replace(/^www\./, '').toLowerCase();
+  if (strip(candidate.hostname) === strip(origin.hostname)) return false;
+
+  return true;
+}
+
 /** 由官方 URL 砌一個穩定嘅 source_id——同一條 URL 唔會提議兩次。 */
 function sourceIdFor(url: string, cardIds: string[]): string {
   const host = (() => {
@@ -161,6 +201,10 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     for (const promo of outcome.result.promotions) {
       const url = promo.official_source_url;
       if (url === null || knownUrls.has(url) || proposed.has(url)) continue;
+      if (!isUsableOfficialSource(url, source.url)) {
+        attention.push(`「${promo.title}」指住嘅官方出處 ${url} 用唔到（裸首頁或者第三方自己個網域）——冇加入 sources.json`);
+        continue;
+      }
       const cardIds = promo.card_id ? [promo.card_id] : [];
       proposed.set(url, {
         source_id: sourceIdFor(url, cardIds),
