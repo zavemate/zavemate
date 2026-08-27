@@ -3,4 +3,5 @@ export * from './card.ts';
 export * from './promotion.ts';
 export * from './valuations.ts';
 export * from './sources.ts';
+export * from './question.ts';
 export * from './canonical.ts';
