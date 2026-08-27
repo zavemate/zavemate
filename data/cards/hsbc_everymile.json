@@ -2,6 +2,9 @@
   "active": true,
   "annual_fee": 2000,
   "annual_fee_waiver_note": "官方 Key Facts Statement 註 4：年費 HK$2,000，如該年度 HSBC EveryMile 信用卡簽賬達指定金額，下年度可獲年費豁免（具體金額未搵到，詳情見 hsbc.com.hk/everymile）。",
+  "card_aliases": [
+    "EveryMile"
+  ],
   "card_id": "hsbc_everymile",
   "card_name": "HSBC EveryMile Credit Card",
   "card_name_zh": "滙豐 EveryMile 信用卡",

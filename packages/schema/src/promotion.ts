@@ -109,21 +109,37 @@ export const Promotion = PromotionBase.superRefine((promo, ctx) => {
     });
   }
 
-  // §6.5：冇明確 end_date → null + unconfirmed。唔好估。
-  if (promo.end_date === null && promo.provenance.confidence !== 'unconfirmed') {
+  // §6.5：冇明確 end_date 就唔可以聲稱 official。唔好估。
+  //
+  // 原本呢條寫死「一定要 unconfirmed」，但同「第三方來源一律 crowdsourced」
+  // 撞板——一個第三方抽到、冇寫結束日嘅優惠兩條規則都符合唔到。兩者講緊唔同
+  // 嘅嘢：`crowdsourced` 講**出處性質**（第三方講嘅嘢我哋核實唔到），
+  // `unconfirmed` 講**資料完整度**。夾硬要第三方嘅嘢變 unconfirmed，等於話
+  // 「我哋核實過，但唔肯定」——兩樣都唔係真。
+  //
+  // 真正要守住嘅係：冇結束日就唔可以話自己 official。噉樣兩條規則就唔會打交。
+  if (promo.end_date === null && promo.provenance.confidence === 'official') {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['provenance', 'confidence'],
       message:
-        'end_date 係 null（即係唔知幾時完）就一定要 confidence = "unconfirmed"；如果真係讀到結束日就填落 end_date',
+        'end_date 係 null（即係唔知幾時完）就唔可以 confidence = "official"；如果真係讀到結束日就填落 end_date',
     });
   }
 
-  if (promo.requires_registration && promo.registration_url === null) {
+  // 要登記但冇俾登記連結——淨係對 official 強制。
+  //
+  // 官方頁面我哋讀得到，登記連結一定攞得到。但第三方報導成日淨係寫「一經
+  // 滙豐Reward+ App登記」——嗰個係 app 唔係 URL，根本冇連結可以抄。
+  //
+  // 呢種情況下，寧願講「要登記，但唔知去邊登記」都好過隱瞞「要登記」。
+  // **「要登記」呢個事實本身比「登記連結」重要得多**：唔講嘅話用戶會以為
+  // 碌咗就有，最後成個回贈都攞唔到。
+  if (promo.requires_registration && promo.registration_url === null && promo.provenance.confidence === 'official') {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['registration_url'],
-      message: 'requires_registration = true 就要俾 registration_url',
+      message: 'official 來源嘅 requires_registration = true 就要俾 registration_url',
     });
   }
 

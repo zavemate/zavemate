@@ -2,6 +2,10 @@
   "active": true,
   "annual_fee": 0,
   "annual_fee_waiver_note": "官方 Key Facts Statement 列明 Annual Fee「Waived permanently」（基本卡同 additional card combined billing 都係），故 annual_fee 直接填 0。呢個豁免同 eligibility 門檻本身係分開嘅兩件事——冇資格做卓越理財就攞唔到呢張卡，唔關年費事。",
+  "card_aliases": [
+    "Premier Mastercard",
+    "卓越理財"
+  ],
   "card_id": "hsbc_premier_mastercard",
   "card_name": "HSBC Premier Mastercard",
   "card_name_zh": "滙豐卓越理財萬事達卡",

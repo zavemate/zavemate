@@ -38,7 +38,7 @@ function input(overrides: Partial<ApplyPromoInput> = {}): ApplyPromoInput {
     extracted: [extracted()],
     existing: new Map<string, Promotion>(),
     existingForPrompt: [],
-    cards: [{ card_id: 'hsbc_red', issuer: 'HSBC', issuer_aliases: ['滙豐'] }],
+    cards: [{ card_id: 'hsbc_red', issuer: 'HSBC', issuer_aliases: ['滙豐'], card_aliases: ['Red 卡', '紅卡'] }],
     sourceUrl: 'https://www.hsbc.com.hk/credit-cards/',
     sourceType: 'official',
     today: TODAY,
@@ -118,6 +118,74 @@ describe('§6.5 特殊情況', () => {
   it('slug 唔係 ASCII → 唔寫入，唔會砌個爛 id', () => {
     const result = applyExtractedPromotions(input({ extracted: [extracted({ slug: '指定商戶' })] }));
     expect(result.updated.size).toBe(0);
+  });
+});
+
+describe('卡級排除條款', () => {
+  const EXCLUDES_EVERYMILE =
+    '推廣期由2026年6月26日至8月31日，一經滙豐Reward+ App登記…累積合資格簽賬滿第二層可享額外6%獎賞錢回贈上限回贈$800獎賞錢…滙豐 EveryMile 信用卡並不適用於此推廣。';
+
+  it('原文明講呢張卡唔適用 → 唔寫入', () => {
+    const result = applyExtractedPromotions(
+      input({
+        cards: [{ card_id: 'hsbc_everymile', issuer: 'HSBC', issuer_aliases: ['滙豐'], card_aliases: ['EveryMile'] }],
+        extracted: [extracted({ card_id: 'hsbc_everymile', evidence_excerpt: EXCLUDES_EVERYMILE })],
+      }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('唔適用');
+  });
+
+  it('同一段原文，冇被排除嗰張卡照收——唔可以一刀切', () => {
+    // 呢個先係難位：EveryMile 被排除，但 Red 喺同一段原文入面係啱嘅。
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ card_id: 'hsbc_red', evidence_excerpt: EXCLUDES_EVERYMILE })] }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+
+  it('ASCII alias 要字界——"Red" 唔可以撞中 "registered"', () => {
+    const result = applyExtractedPromotions(
+      input({
+        cards: [{ card_id: 'hsbc_red', issuer: 'HSBC', issuer_aliases: ['滙豐'], card_aliases: ['Red'] }],
+        extracted: [
+          extracted({ evidence_excerpt: '憑滙豐信用卡簽賬。Customers who are not registered are 不適用。' }),
+        ],
+      }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+});
+
+describe('reward 欄位正規化', () => {
+  it('cash_rebate 只留 rate，bonus_amount 唔會跟住入去', () => {
+    // LLM 成日一次過填幾個（6% 上限 $800）。上限住喺 cap 度，唔係 reward 度。
+    const result = applyExtractedPromotions(
+      input({
+        extracted: [
+          extracted({
+            reward: { type: 'cash_rebate', rate: 0.06, multiplier: null, bonus_amount: 800, hkd_per_mile: null },
+          }),
+        ],
+      }),
+    );
+    const [promo] = [...result.updated.values()];
+    expect(promo!.reward).toEqual({ type: 'cash_rebate', rate: 0.06, multiplier: null, bonus_amount: null, hkd_per_mile: null });
+  });
+
+  it('對應欄位空咗 → 唔寫入，唔會自己砌個數出嚟', () => {
+    // 「簽$3,500送$1,000」——係 cash_rebate 但冇 rate。我哋唔知個率係幾多。
+    const result = applyExtractedPromotions(
+      input({
+        extracted: [
+          extracted({
+            reward: { type: 'cash_rebate', rate: null, multiplier: null, bonus_amount: 1000, hkd_per_mile: null },
+          }),
+        ],
+      }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('唔會自己砌返個數');
   });
 });
 

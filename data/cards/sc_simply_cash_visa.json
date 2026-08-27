@@ -2,6 +2,9 @@
   "active": true,
   "annual_fee": 2000,
   "annual_fee_waiver_note": "官方 T&C（Simply Cash_TnC_EP，06/2020）第 4 條：持卡人喺上一個年度內（即由信用卡發卡日期之週年日起）符合有關最低結餘要求之「優先理財」/「Premium 理財」客戶，或出糧戶口客戶，即可享年費豁免；須於年費誌賬月份符合上述條件先可享有。",
+  "card_aliases": [
+    "Simply Cash"
+  ],
   "card_id": "sc_simply_cash_visa",
   "card_name": "Standard Chartered Simply Cash Visa Card",
   "card_name_zh": "渣打 Simply Cash Visa 卡",

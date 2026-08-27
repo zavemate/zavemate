@@ -52,5 +52,6 @@ export function cardsForSource(cards: Card[], source: Source) {
       card_name: c.card_name,
       issuer: c.issuer,
       issuer_aliases: c.issuer_aliases,
+      card_aliases: c.card_aliases,
     }));
 }

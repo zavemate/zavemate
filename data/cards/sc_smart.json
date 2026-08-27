@@ -2,6 +2,10 @@
   "active": true,
   "annual_fee": 0,
   "annual_fee_waiver_note": "官方 T&C 列明「perpetual annual fee waiver」（永久年費豁免），故 annual_fee 直接填 0，冇條件。",
+  "card_aliases": [
+    "Smart 卡",
+    "Smart卡"
+  ],
   "card_id": "sc_smart",
   "card_name": "Standard Chartered Smart Credit Card",
   "card_name_zh": "渣打 Smart 信用卡",

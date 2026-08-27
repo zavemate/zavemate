@@ -12,6 +12,7 @@ const card = {
   card_name: 'HSBC Red',
   issuer: 'HSBC',
   issuer_aliases: ['滙豐'],
+  card_aliases: ['Red 卡', '紅卡'],
   active: true,
 } as Card;
 
