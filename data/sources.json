@@ -10,6 +10,8 @@
       ],
       "check_fail_count": 0,
       "content_hash": "0c6906c037fb1845c13edac19107f633d2a96c42c1bed6ce5dc74767029c5365",
+      "feed_format": null,
+      "item_hashes": {},
       "label": "滙豐信用卡簽賬優惠及回贈",
       "last_checked_at": "2026-08-27T07:21:31.619Z",
       "render_mode": "html",
@@ -28,6 +30,8 @@
       ],
       "check_fail_count": 1,
       "content_hash": null,
+      "feed_format": null,
+      "item_hashes": {},
       "label": "渣打信用卡優惠總覽",
       "last_checked_at": "2026-08-27T07:21:31.619Z",
       "render_mode": "html",
@@ -40,12 +44,14 @@
       "card_ids": [],
       "check_fail_count": 0,
       "content_hash": null,
-      "label": "HKCashRebate 限時優惠專欄",
+      "feed_format": "rss",
+      "item_hashes": {},
+      "label": "HKCashRebate 限時優惠 RSS",
       "last_checked_at": null,
       "render_mode": "html",
       "source_id": "hkcashrebate",
       "source_type": "third_party",
-      "url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0"
+      "url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
     }
   ]
 }

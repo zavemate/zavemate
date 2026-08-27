@@ -112,7 +112,16 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     }
 
     for (const usage of outcome.usage) totalCostUsd += usage.costUsd;
-    nextSources.push({ ...source, content_hash: outcome.contentHash, check_fail_count: 0, last_checked_at: nowIso });
+    nextSources.push({
+      ...source,
+      content_hash: outcome.contentHash,
+      // Feed 先有 itemHashes。佢已經剪剩 feed 而家仲有嗰批 guid，所以係整個
+      // 取代唔係合併——合併嘅話跌咗出 feed 嘅舊文會永遠留喺度。
+      ...(outcome.itemHashes ? { item_hashes: outcome.itemHashes } : {}),
+      check_fail_count: 0,
+      last_checked_at: nowIso,
+    });
+    if (outcome.itemNotes) for (const note of outcome.itemNotes) notes.push(`    ${note}`);
 
     const result = applyExtractedPromotions({
       extracted: outcome.result.promotions,
@@ -161,6 +170,9 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
         source_type: 'official',
         card_ids: cardIds,
         content_hash: null,
+        // 銀行官方優惠頁唔會係 feed，所以呢兩個欄位由零開始。
+        feed_format: null,
+        item_hashes: {},
         last_checked_at: null,
         check_fail_count: 0,
         active: true,

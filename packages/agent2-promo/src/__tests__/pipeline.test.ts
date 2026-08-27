@@ -18,6 +18,8 @@ function source(overrides: Partial<Source> = {}): Source {
     source_type: 'official',
     card_ids: ['hsbc_red'],
     content_hash: null,
+    feed_format: null,
+    item_hashes: {},
     last_checked_at: null,
     check_fail_count: 0,
     active: true,

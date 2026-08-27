@@ -118,6 +118,30 @@ describe('§6.5 特殊情況', () => {
   });
 });
 
+describe('一出世就死咗嘅優惠', () => {
+  it('end_date 過咗緩衝期 → 唔寫入，出 attention note', () => {
+    // Feed 拆開之後會見到幾個月舊文——實測 hkcashrebate 個 feed 有一篇
+    // 7月6日至7月31日嘅滙豐麥當勞優惠，今日已經 8月27日。
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ end_date: '2026-07-31', title: '滙豐麥當勞額外15%回贈' })] }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('已經過咗');
+  });
+
+  it('啱啱先完（仲喺 7 日緩衝期內）→ 照收，同步驟 0 嘅判斷一致', () => {
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ end_date: '2026-08-25' })] }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+
+  it('end_date null（官方冇講幾時完）→ 照收，冇日期就冇得判過期', () => {
+    const result = applyExtractedPromotions(input({ extracted: [extracted({ end_date: null })] }));
+    expect(result.updated.size).toBe(1);
+  });
+});
+
 describe('match.scope', () => {
   it('有準則 → criteria', () => {
     const result = applyExtractedPromotions(input());

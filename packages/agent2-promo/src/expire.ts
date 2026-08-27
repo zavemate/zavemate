@@ -20,7 +20,7 @@ export interface ExpiryResult {
   notes: string[];
 }
 
-function daysBetween(from: string, to: string): number {
+export function daysBetween(from: string, to: string): number {
   return (Date.parse(to) - Date.parse(from)) / (24 * 60 * 60 * 1000);
 }
 
