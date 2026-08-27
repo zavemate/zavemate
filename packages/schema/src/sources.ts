@@ -61,6 +61,22 @@ export const Source = z.strictObject({
    * 空 map = 由零開始，第一次跑會**成個 feed 逐篇睇曬**。
    */
   item_hashes: z.record(z.string(), z.string().length(64)).default({}),
+  /**
+   * Feed 專用：一次最多揭幾多頁。
+   *
+   * WordPress feed 支援 `?paged=N`，每頁十幾篇。hkcashrebate 個「限時優惠」
+   * category 有 321 篇、揭到 27 頁，一頁大約一個月——即係淨係讀第一頁嘅話，
+   * 一個仲 running 但出咗街一個月以上嘅優惠我哋由頭到尾唔會見過。實測 page 2
+   * 第一篇就係「滙豐HSBC最紅內地簽賬優惠」，正正係我哋覆蓋緊嗰批卡。
+   *
+   * 揭幾深係成本同噪音嘅取捨：一頁一個月，而推廣期超過半年嘅通常已經係張卡
+   * 嘅長期結構而唔係限時優惠。所以 4 頁（約半年）就夠接住所有仲生效嘅優惠，
+   * 再深就淨係抽返一堆過咗期、跟住被 apply 擋走嘅嘢。
+   *
+   * 呢個只係上限。實際會揭到某一頁「全部 item 都已經睇過」為止——所以穩定
+   * 狀態通常揭兩頁就停。
+   */
+  feed_max_pages: z.number().int().positive().default(4),
   last_checked_at: z.string().datetime().nullable().default(null),
   /** 連續 fetch 失敗次數，連續 3 次就標 broken-source（§6.2）。 */
   check_fail_count: z.number().int().nonnegative().default(0),

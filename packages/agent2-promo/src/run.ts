@@ -173,6 +173,7 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
         // 銀行官方優惠頁唔會係 feed，所以呢兩個欄位由零開始。
         feed_format: null,
         item_hashes: {},
+        feed_max_pages: 4,
         last_checked_at: null,
         check_fail_count: 0,
         active: true,
