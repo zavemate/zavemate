@@ -1,3 +1,4 @@
+import { getDefaultAutoSelectFamilyAttemptTimeout } from 'node:net';
 import { describe, expect, it } from 'vitest';
 import { FetchError, fetchSource } from '../fetch.ts';
 
@@ -20,6 +21,16 @@ try {
  */
 const SC_SMART_TNC_PDF = 'https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf';
 const hasCloudflareCredentials = Boolean(process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID);
+
+describe('連線設定', () => {
+  it('import fetch.ts 就會抬高 Happy Eyeballs 嘅 per-address timeout', () => {
+    // Node default 係 250ms，而 av.sc.com 由香港連過去 handshake 量到 217ms。
+    // 實測 default 之下同一份 PDF 拉 6 次死 3 次，每次都喺 258ms 報 ETIMEDOUT
+    // ——一個健康嘅 source 會扮 fetch_failed，然後 check_fail_count 累加、
+    // 夠三次標 broken-source。呢個 test 守住嗰行設定唔好被人手快刪走。
+    expect(getDefaultAutoSelectFamilyAttemptTimeout()).toBeGreaterThanOrEqual(2_000);
+  });
+});
 
 describe('fetchSource（html）', () => {
   it('攞到真實網頁', async () => {
