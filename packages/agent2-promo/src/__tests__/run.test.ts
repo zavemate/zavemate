@@ -6,7 +6,14 @@ import { isUsableOfficialSource, runAgent2 } from '../run.ts';
 
 const NOW = new Date('2026-08-27T04:00:00.000Z');
 
-const card = { card_id: 'hsbc_red', card_name: 'HSBC Red', active: true } as Card;
+// issuer / issuer_aliases 唔可以慳：apply 而家會驗返原文有冇提過發卡行。
+const card = {
+  card_id: 'hsbc_red',
+  card_name: 'HSBC Red',
+  issuer: 'HSBC',
+  issuer_aliases: ['滙豐'],
+  active: true,
+} as Card;
 
 function source(overrides: Partial<Sources['sources'][number]> = {}): Sources['sources'][number] {
   return {
@@ -48,7 +55,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     is_publisher_offer: false,
     official_source_url: null,
     confidence: 'crowdsourced',
-    evidence_excerpt: '夏日餐飲額外 6% 回贈',
+    evidence_excerpt: '憑滙豐信用卡於夏日餐飲簽賬可享額外 6% 回贈',
     ...overrides,
   };
 }

@@ -10,7 +10,8 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
   return {
     card_id: 'hsbc_red',
     slug: 'online',
-    title: '網上簽賬 4%',
+    // 而家「原文提過發卡行」係合格抽取嘅前提，所以預設 fixture 一定要有。
+    title: '滙豐網上簽賬 4%',
     reward: { type: 'cash_rebate', rate: 0.04, multiplier: null, bonus_amount: null, hkd_per_mile: null },
     cap_value: 10000,
     cap_unit: 'spend',
@@ -27,7 +28,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     is_publisher_offer: false,
     official_source_url: null,
     confidence: 'official',
-    evidence_excerpt: '網上簽賬 4%「獎賞錢」回贈',
+    evidence_excerpt: '憑滙豐信用卡網上簽賬可享 4%「獎賞錢」回贈',
     ...overrides,
   };
 }
@@ -37,6 +38,7 @@ function input(overrides: Partial<ApplyPromoInput> = {}): ApplyPromoInput {
     extracted: [extracted()],
     existing: new Map<string, Promotion>(),
     existingForPrompt: [],
+    cards: [{ card_id: 'hsbc_red', issuer: 'HSBC', issuer_aliases: ['滙豐'] }],
     sourceUrl: 'https://www.hsbc.com.hk/credit-cards/',
     sourceType: 'official',
     today: TODAY,
@@ -116,6 +118,45 @@ describe('§6.5 特殊情況', () => {
   it('slug 唔係 ASCII → 唔寫入，唔會砌個爛 id', () => {
     const result = applyExtractedPromotions(input({ extracted: [extracted({ slug: '指定商戶' })] }));
     expect(result.updated.size).toBe(0);
+  });
+});
+
+describe('發卡行要對得上（機器驗證）', () => {
+  it('原文提過發卡行 → 收', () => {
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ evidence_excerpt: '憑滙豐信用卡於百老滙分店簽賬可享額外6%獎賞錢' })] }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+
+  it('原文由頭到尾講緊恒生 → 唔收，就算 LLM 話係滙豐卡', () => {
+    // 真實個案：22 條抽取結果入面約 14 條係噉錯。恒生係滙豐集團成員、中文名
+    // 又似，LLM 當咗同一間——但佢自己交嘅 evidence 寫住「憑恒生信用卡」。
+    const result = applyExtractedPromotions(
+      input({
+        extracted: [
+          extracted({
+            title: '恒生信用卡IKEA額外回贈',
+            evidence_excerpt: '推廣期由2026年8月6日至9月30日，一經登記，憑恒生信用卡去宜家家居分店簽賬可享額外回贈',
+          }),
+        ],
+      }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('一次都冇提過 HSBC');
+  });
+
+  it('英文寫法一樣收得', () => {
+    const result = applyExtractedPromotions(
+      input({ extracted: [extracted({ title: 'HSBC Broadway offer', evidence_excerpt: 'Spend with your HSBC card' })] }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+
+  it('card_id 唔喺呢個來源嘅卡清單入面 → 唔收', () => {
+    const result = applyExtractedPromotions(input({ extracted: [extracted({ card_id: 'sc_smart' })] }));
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('唔喺呢個來源嘅卡清單');
   });
 });
 

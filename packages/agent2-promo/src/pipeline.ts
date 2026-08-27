@@ -40,7 +40,7 @@ export type PromoPipelineOutcome =
 
 export interface PromoPipelineInput {
   source: Source;
-  cards: Array<{ card_id: string; card_name: string }>;
+  cards: Array<{ card_id: string; card_name: string; issuer: string }>;
   existing: ExistingPromotion[];
   today: string;
   provider: PromoLLMProvider;

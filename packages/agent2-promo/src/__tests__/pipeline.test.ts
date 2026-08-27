@@ -29,7 +29,7 @@ function source(overrides: Partial<Source> = {}): Source {
 }
 
 const base = {
-  cards: [{ card_id: 'hsbc_red', card_name: 'HSBC Red Credit Card' }],
+  cards: [{ card_id: 'hsbc_red', card_name: 'HSBC Red Credit Card', issuer: 'HSBC' }],
   existing: [],
   today: '2026-08-27',
 };

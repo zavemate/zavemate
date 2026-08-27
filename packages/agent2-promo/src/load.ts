@@ -47,5 +47,10 @@ export function cardsForSource(cards: Card[], source: Source) {
   const wanted = new Set(source.card_ids);
   return cards
     .filter((c) => c.active && (wanted.size === 0 || wanted.has(c.card_id)))
-    .map((c) => ({ card_id: c.card_id, card_name: c.card_name }));
+    .map((c) => ({
+      card_id: c.card_id,
+      card_name: c.card_name,
+      issuer: c.issuer,
+      issuer_aliases: c.issuer_aliases,
+    }));
 }
