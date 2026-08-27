@@ -129,6 +129,19 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
       else added += 1;
       touched.set(id, promo);
     }
+
+    // 每個跑過嘅 source 都要有一行，就算佢乜都搵唔到。
+    //
+    // 第一次真跑就撞到呢個：HSBC 同第三方兩個 source 都成功抽取、都叫咗 LLM、
+    // 都搵到 0 個優惠——然後 PR body 一個字都冇提過佢哋。個 PR 睇落好似只跑過
+    // 一個 source。對事實層嚟講，「查過冇嘢」同「冇查過」唔可以分唔出。
+    const found = outcome.result.promotions.length;
+    const written = result.updated.size;
+    notes.push(
+      found === 0
+        ? `✓ ${source.source_id}：內容變咗，重新掃過，冇搵到限時優惠`
+        : `✓ ${source.source_id}：抽到 ${found} 個優惠，寫入 ${written} 個${found > written ? `（${found - written} 個被過濾，見下面 ⚠️）` : ''}`,
+    );
     notes.push(...result.notes);
     attention.push(...result.attentionNeeded);
     duplicates.push(...result.suspectedDuplicates);

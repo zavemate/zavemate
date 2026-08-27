@@ -3,6 +3,7 @@ import { basename, join } from 'node:path';
 import { ZodError } from 'zod';
 import { Card } from '../card.ts';
 import { Promotion } from '../promotion.ts';
+import { Question, questionId } from '../question.ts';
 import { Sources } from '../sources.ts';
 import { Valuations } from '../valuations.ts';
 import { dataDir, formatZodError, listJson, readText, rel } from './util.ts';
@@ -135,9 +136,74 @@ if (!existsSync(sourcesFile)) {
   }
 }
 
+// --------------------------------------------------- questions
+
+const questionFiles = existsSync(join(dataDir, 'questions')) ? listJson(join(dataDir, 'questions')) : [];
+const seenQuestions = new Set<string>();
+/** rule_id → 有冇 open question。有嘅話嗰條 rule 唔可以標 official。 */
+const blocked = new Set<string>();
+
+for (const file of questionFiles) {
+  const raw = parseJson(file);
+  if (raw === undefined) continue;
+  const question = parseWith(file, Question, raw);
+  if (!question) continue;
+
+  const expected = basename(file, '.json');
+  if (question.question_id !== expected) {
+    fail(file, [`  檔名 = id：question_id 係 "${question.question_id}"，但檔名係 "${expected}"`]);
+    continue;
+  }
+  if (seenQuestions.has(question.question_id)) {
+    fail(file, [`  question_id "${question.question_id}" 重複`]);
+    continue;
+  }
+  seenQuestions.add(question.question_id);
+
+  if (!cards.has(question.card_id)) {
+    fail(file, [`  指住唔存在嘅 card_id "${question.card_id}"`]);
+    continue;
+  }
+  if (question.rule_id !== null) {
+    if (ruleOwner.get(question.rule_id) !== question.card_id) {
+      fail(file, [`  指住 rule_id "${question.rule_id}"，但嗰條 rule 唔屬於 card "${question.card_id}"`]);
+      continue;
+    }
+    const expectedId = questionId(question.rule_id, question.kind);
+    if (question.question_id !== expectedId) {
+      // id 決定性產生，先至保證同一條 rule 同一種問題唔會開兩次。
+      fail(file, [`  question_id 應該係 "${expectedId}"（{rule_id}_{kind}），而家係 "${question.question_id}"`]);
+      continue;
+    }
+    if (question.status === 'open') blocked.add(question.rule_id);
+  }
+
+  if (question.status === 'answered' && question.answer === null) {
+    fail(file, ['  status 係 "answered" 但 answer 係 null——答咗就要寫低答咗乜']);
+  }
+  if (question.status === 'open' && question.answer !== null) {
+    fail(file, ['  已經有 answer 但 status 仲係 "open"——答完要改埋 status']);
+  }
+}
+
+// 有 open question 嘅 rule 唔可以標 official。
+//
+// 「我哋知道自己有一條未答嘅問題」同「我哋確認呢個數字有官方出處」唔可以並存。
+// 冇呢條規則，一條有已知疑問嘅 rule 會繼續以 official 出街，而個疑問淨係
+// 活喺一個冇人再睇嘅檔案入面。
+for (const [cardId, card] of cards) {
+  for (const rule of card.rewards) {
+    if (!blocked.has(rule.rule_id)) continue;
+    if (rule.provenance.confidence !== 'official') continue;
+    fail(join(dataDir, 'cards', `${cardId}.json`), [
+      `  rule "${rule.rule_id}" 有 open question（data/questions/），但 confidence 標住 "official"——未答到嘅嘢唔可以當已確認`,
+    ]);
+  }
+}
+
 // --------------------------------------------------- 冇人認領嘅 data 檔
 
-const known = new Set([...cardFiles, ...promotionFiles, valuationsFile, sourcesFile]);
+const known = new Set([...cardFiles, ...promotionFiles, ...questionFiles, valuationsFile, sourcesFile]);
 for (const file of listJson(dataDir)) {
   if (!known.has(file)) {
     errors.push(`✗ ${rel(file)}\n  data/ 入面有個冇 schema 認領嘅檔`);

@@ -5,3 +5,4 @@ export * from './pipeline.ts';
 export * from './scan.ts';
 export * from './apply.ts';
 export * from './run.ts';
+export * from './repair.ts';

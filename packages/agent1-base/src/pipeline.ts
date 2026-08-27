@@ -24,7 +24,13 @@ export type PipelineOutcome =
   | { kind: 'fetch_failed'; error: FetchError }
   /** 抓到嘢但抽唔到文字（例如圖片型 PDF）——當讀唔到處理，唔好攞嚟餵 LLM。 */
   | { kind: 'extraction_too_thin'; reason: string; chars: number; pages: number | null }
-  | { kind: 'unchanged'; contentHash: string; fetchedAt: string }
+  | {
+      kind: 'unchanged';
+      contentHash: string;
+      fetchedAt: string;
+      /** 抽取到嘅原文。就算內容冇變，都要驗返 evidence 撐唔撐得住。 */
+      mainContent: string;
+    }
   | {
       kind: 'extracted';
       contentHash: string;
@@ -63,7 +69,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineOutcome
 
   // hash 短路（§6.1 步驟 4）：內容冇變，完全跳過 LLM。
   if (input.existingContentHash !== null && contentHash === input.existingContentHash) {
-    return { kind: 'unchanged', contentHash, fetchedAt: fetchResult.fetchedAt };
+    return { kind: 'unchanged', contentHash, fetchedAt: fetchResult.fetchedAt, mainContent };
   }
 
   const systemPrompt = buildSystemPrompt(input.cardName, input.knownRules);

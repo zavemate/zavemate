@@ -75,3 +75,22 @@ jobs:
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           [ "$STATE" = success ]
+
+      # 淨係改 timestamp 嘅 PR 自動 merge。
+      #
+      # 用戶決定（2026-08-27）：保持週跑，但全綠又冇實質改動嘅 PR 唔使人手撳。
+      # 週跑嘅價值係 last_verified_at——「我哋今日確認過呢個數字仲係啱」就係
+      # 產品本身，所以唔可以為咗慳 PR 而唔跑。但一個零改動嘅 PR，人睇同唔睇
+      # 冇分別。
+      #
+      # ⚠️ 條件係 changed === 0，唔係「gate 過晒」。有任何回贈數值郁過都要人睇，
+      # 就算 gate 全過——gate 捉唔合理嘅改動，捉唔到合理但錯嘅改動。
+      #
+      # 呢個動到 §2 決策 4「Staging gate = PR review」，係用戶明確拍板嘅收窄。
+      - name: 零改動嘅 PR 自動 merge
+        if: steps.agent1.outputs.auto_mergeable == 'true' && steps.agent1.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.agent1.outputs.pr_url }}" --squash --delete-branch
+          echo "零改動，已自動 merge：${{ steps.agent1.outputs.pr_url }}"

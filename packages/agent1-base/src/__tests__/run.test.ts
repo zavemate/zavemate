@@ -252,6 +252,149 @@ describe('runAgent1', () => {
     expect(byId.rule_b.provenance.check_fail_count).toBe(1);
   });
 
+  it('零改動嘅 run：changed 係 0，gate 過，冇 broken source', async () => {
+    // 呢個組合就係 workflow 自動 merge 嘅條件。用戶決定保持週跑，但全綠又冇
+    // 實質改動嘅 PR 唔使人手撳——而條件特登窄過「gate 過晒」，因為 gate 捉唔
+    // 到「合理但錯」嘅改動。
+    const unchangedProvider: LLMProvider = {
+      name: 'unchanged',
+      async extractJson() {
+        return {
+          data: {
+            rules: [
+              {
+                rule_id: 'demo_card_online',
+                found: true,
+                reward: { type: 'cash_rebate', rate: 0.04, points_per_hkd: null, hkd_per_mile: null },
+                cap_value: null,
+                cap_unit: null,
+                effective_from: null,
+                confidence: 'official',
+                evidence_excerpt: '網上簽賬回贈 4%',
+              },
+            ],
+          },
+          usage: { tokensIn: 1, tokensOut: 1, costUsd: 0, model: 'fake' },
+        };
+      },
+    };
+
+    const result = await runAgent1({
+      provider: unchangedProvider,
+      githubToken: 'fake-token',
+      cards: [card({ rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })] })],
+      now: NOW,
+      runPipelineFn: stubPipeline(),
+      openPRFn: async (params) => ({ number: 9, url: 'https://x/9', branchName: params.branchName }),
+    });
+
+    expect(result.changed).toBe(0);
+    expect(result.gatePassed).toBe(true);
+    expect(result.brokenSources).toEqual([]);
+  });
+
+  it('evidence 對唔上 → 修復 agent 提出替代，驗到就自動改，唔開 question', async () => {
+    // 呢個係成個 loop 收唔收斂嘅關鍵。實測六條 evidence 對唔上入面，五條都係
+    // 「引文寫錯但數值啱」——嗰啲人做同機器做完全一樣，所以唔應該煩人。
+    const SOURCE = '持卡人可享網上簽賬回贈 4%，受條款約束。';
+    const repairProvider: LLMProvider = {
+      name: 'repair',
+      async extractJson({ systemPrompt }) {
+        // 修復 pass 個 prompt 會提到「一字不改」；抽取 pass 唔會。
+        if (systemPrompt.includes('一字不改')) {
+          return {
+            data: { verdict: 'supported', excerpt: '持卡人可享網上簽賬回贈 4%', contradicting_excerpt: null, reasoning: '原文直接寫住' },
+            usage: { tokensIn: 1, tokensOut: 1, costUsd: 0.001, model: 'fake' },
+          };
+        }
+        throw new Error('唔應該叫抽取');
+      },
+    };
+
+    let captured: Array<{ path: string; content: string }> | undefined;
+    const result = await runAgent1({
+      provider: repairProvider,
+      githubToken: 'fake-token',
+      cards: [
+        card({
+          rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/', evidence_excerpt: '呢句唔喺原文入面' }) })],
+        }),
+      ],
+      now: NOW,
+      runPipelineFn: (async () => ({
+        kind: 'unchanged' as const,
+        contentHash: 'a'.repeat(64),
+        fetchedAt: NOW.toISOString(),
+        mainContent: SOURCE,
+      })) as never,
+      openPRFn: async (params) => {
+        captured = params.files;
+        return { number: 11, url: 'https://x/11', branchName: params.branchName };
+      },
+    });
+
+    expect(result.repaired).toBe(1);
+    expect(result.questionsRaised).toBe(0);
+    const written = JSON.parse(captured!.find((f) => f.path.includes('demo_card'))!.content);
+    expect(written.rewards[0].provenance.evidence_excerpt).toBe('持卡人可享網上簽賬回贈 4%');
+    expect(written.rewards[0].provenance.confidence).toBe('official');
+    expect(captured!.some((f) => f.path.startsWith('data/questions/'))).toBe(false);
+  });
+
+  it('修復 agent 搞唔掂 → 開 question，而且順手降 unconfirmed', async () => {
+    // 有 open question 嘅 rule 唔可以係 official（validate 強制），所以要一齊降。
+    const SOURCE = '本文件完全冇提過任何回贈率。';
+    const stuckProvider: LLMProvider = {
+      name: 'stuck',
+      async extractJson({ systemPrompt }) {
+        if (systemPrompt.includes('一字不改')) {
+          return {
+            data: { verdict: 'absent', excerpt: null, contradicting_excerpt: null, reasoning: '文件冇提過' },
+            usage: { tokensIn: 1, tokensOut: 1, costUsd: 0.001, model: 'fake' },
+          };
+        }
+        throw new Error('唔應該叫抽取');
+      },
+    };
+
+    let captured: Array<{ path: string; content: string }> | undefined;
+    let labels: string[] | undefined;
+    const result = await runAgent1({
+      provider: stuckProvider,
+      githubToken: 'fake-token',
+      cards: [
+        card({
+          rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/', evidence_excerpt: '呢句唔喺原文入面' }) })],
+        }),
+      ],
+      now: NOW,
+      runPipelineFn: (async () => ({
+        kind: 'unchanged' as const,
+        contentHash: 'a'.repeat(64),
+        fetchedAt: NOW.toISOString(),
+        mainContent: SOURCE,
+      })) as never,
+      openPRFn: async (params) => {
+        captured = params.files;
+        labels = params.labels;
+        return { number: 12, url: 'https://x/12', branchName: params.branchName };
+      },
+    });
+
+    expect(result.repaired).toBe(0);
+    expect(result.questionsRaised).toBe(1);
+
+    const qFile = captured!.find((f) => f.path.startsWith('data/questions/'))!;
+    expect(qFile.path).toBe('data/questions/demo_card_online_evidence_absent.json');
+    const q = JSON.parse(qFile.content);
+    expect(q.status).toBe('open');
+    expect(q.rule_id).toBe('demo_card_online');
+
+    const written = JSON.parse(captured!.find((f) => f.path.includes('cards/'))!.content);
+    expect(written.rewards[0].provenance.confidence).toBe('unconfirmed');
+    expect(labels).toContain('needs-review');
+  });
+
   it('冇任何 rule（新卡都冇）→ 唔開 PR', async () => {
     const result = await runAgent1({
       provider: fakeProvider,
