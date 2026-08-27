@@ -63,6 +63,17 @@ export const ExtractedPromotion = z.strictObject({
    * true 就唔會被寫入 promotions，會喺 PR body 標出嚟叫人手交俾 Agent 1（§6.5）。
    */
   looks_like_base_terms: z.boolean(),
+  /**
+   * 篇文有冇 link 返去銀行官方條款／優惠頁。有就抄返條 URL。
+   *
+   * 呢個係 crowdsourced → official 嘅升級路徑。第三方平台快（銀行特登將優惠
+   * 散佈落嗰度），但唔準；官方準，但慢。冇呢條 link，第三方發現嘅優惠會永遠
+   * 停喺 crowdsourced——「快」嘅價值攞到，「準」嘅價值攞唔到。
+   *
+   * Agent 2 會喺同一個 PR 度提議將呢條 URL 加入 sources.json。Agent 唔可以
+   * 寫 main，PR review 就係批准機制（§2 決策 3、4）。
+   */
+  official_source_url: z.string().nullable(),
   confidence: z.enum(['official', 'unconfirmed', 'crowdsourced']),
   evidence_excerpt: z.string().max(500).nullable(),
 });
@@ -139,9 +150,12 @@ ${existingList}
 8. reward_includes_base：條款寫住個回贈率「已包含基本回贈／含基本獎賞」就填 true；
    明確講係「額外」「另加」就填 false；講唔清就填 null。**唔好估。**
    呢個直接決定我哋計唔計多咗——填錯會令我哋報一個唔存在嘅回贈率。
-9. 每個數值都要喺 evidence_excerpt 俾返支持佢嘅原文節錄。俾唔到就 confidence
+9. official_source_url：如果段內容有 link 返去銀行官方嘅條款頁或者優惠頁，
+   抄返條完整 URL。冇就填 null。呢個係我哋之後去官方核實嘅入口——第三方講
+   嘅嘢我哋核實唔到，要返去源頭。唔好自己砌一條 URL 出嚟。
+10. 每個數值都要喺 evidence_excerpt 俾返支持佢嘅原文節錄。俾唔到就 confidence
    填 "unconfirmed"。
-10. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
+11. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
    唔係失敗——唔好為咗交嘢而將長期條款當成優惠。
 
 用 JSON 回覆，一定要符合以下 JSON Schema：
