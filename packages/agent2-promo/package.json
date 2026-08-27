@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@zavemate/core": "*",
-    "@zavemate/schema": "*"
+    "@zavemate/schema": "*",
+    "@zavemate/agent1-base": "*"
   }
 }

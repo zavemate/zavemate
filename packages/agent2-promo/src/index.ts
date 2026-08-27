@@ -4,3 +4,5 @@ export * from './extraction.ts';
 export * from './dedupe.ts';
 export * from './apply.ts';
 export * from './pipeline.ts';
+export * from './load.ts';
+export * from './run.ts';
