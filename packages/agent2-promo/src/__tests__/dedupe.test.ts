@@ -18,6 +18,7 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
     end_date: '2026-12-31',
     requires_registration: false,
     ended_early: false,
+    reward_includes_base: true,
     looks_like_base_terms: false,
     confidence: 'official',
     evidence_excerpt: '網上簽賬 4%',

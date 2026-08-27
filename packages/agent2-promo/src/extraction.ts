@@ -47,6 +47,18 @@ export const ExtractedPromotion = z.strictObject({
   /** 官方明文提早結束咗呢個優惠。 */
   ended_early: z.boolean(),
   /**
+   * 呢個回贈率係咪已經**包含**基本回贈（例如「8%『獎賞錢』回贈（含基本獎賞）」）。
+   *
+   * true  = 包含 → stackable_with_base: false（取代 base，唔相加）
+   * false = 額外 → stackable_with_base: true（加落 base 上面）
+   * null  = 條款講唔清 → 當 false 處理（唔相加）+ confidence 降做 unconfirmed
+   *
+   * 呢個欄位唔可以靠 schema default。HSBC Red 個 8% 就係含基本獎賞——當佢
+   * 可疊加就會計成 8.4%，**高報**。高報比低報傷得多：用戶會為咗一個唔存在
+   * 嘅回贈率去碌卡。
+   */
+  reward_includes_base: z.boolean().nullable(),
+  /**
    * 睇落唔似限時優惠，而係張卡嘅長期條款結構。
    * true 就唔會被寫入 promotions，會喺 PR body 標出嚟叫人手交俾 Agent 1（§6.5）。
    */
@@ -124,9 +136,12 @@ ${existingList}
    match_merchant_include）。如果官方有講範圍但你用呢幾個欄位表達唔到
    （例如佢只係寫「餐飲類別」而冇俾商戶清單），scope_not_expressible 填 true。
    **唔好因為表達唔到就當佢適用於全部簽賬**——嗰個係講緊一件唔真嘅事。
-8. 每個數值都要喺 evidence_excerpt 俾返支持佢嘅原文節錄。俾唔到就 confidence
+8. reward_includes_base：條款寫住個回贈率「已包含基本回贈／含基本獎賞」就填 true；
+   明確講係「額外」「另加」就填 false；講唔清就填 null。**唔好估。**
+   呢個直接決定我哋計唔計多咗——填錯會令我哋報一個唔存在嘅回贈率。
+9. 每個數值都要喺 evidence_excerpt 俾返支持佢嘅原文節錄。俾唔到就 confidence
    填 "unconfirmed"。
-9. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
+10. 呢版冇任何限時優惠嘅話，promotions 交一個空陣列。空陣列係正確答案，
    唔係失敗——唔好為咗交嘢而將長期條款當成優惠。
 
 用 JSON 回覆，一定要符合以下 JSON Schema：

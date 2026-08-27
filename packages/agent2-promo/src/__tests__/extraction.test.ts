@@ -48,6 +48,13 @@ describe('buildPromoSystemPrompt', () => {
     expect(buildPromoSystemPrompt(base)).toContain('唔好因為表達唔到就當佢適用於全部簽賬');
   });
 
+  it('講明 reward_includes_base 唔好估，同埋點解重要', () => {
+    // HSBC Red 個 8% 含基本獎賞——當佢可疊加就計成 8.4%，高報。
+    const prompt = buildPromoSystemPrompt(base);
+    expect(prompt).toContain('reward_includes_base');
+    expect(prompt).toContain('報一個唔存在嘅回贈率');
+  });
+
   it('講明空陣列係正確答案', () => {
     // 唔好為咗交嘢而將長期條款當成優惠。
     expect(buildPromoSystemPrompt(base)).toContain('空陣列係正確答案');
@@ -70,6 +77,7 @@ describe('PromoExtractionResult schema', () => {
     end_date: '2026-12-31',
     requires_registration: false,
     ended_early: false,
+    reward_includes_base: true,
     looks_like_base_terms: false,
     confidence: 'official',
     evidence_excerpt: '網上簽賬 4%「獎賞錢」回贈',
