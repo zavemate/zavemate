@@ -107,6 +107,23 @@ describe('全新優惠', () => {
   });
 });
 
+describe('每個跑過嘅 source 都要有一行', () => {
+  it('抽取成功但搵到 0 個優惠 → 都要出 note', async () => {
+    // 第一次真跑撞到：兩個 source 都成功抽取、都叫咗 LLM、都搵到 0 個優惠，
+    // 然後 PR body 一個字都冇提過佢哋。「查過冇嘢」同「冇查過」唔可以分唔出。
+    const { captured } = await run({ outcome: extractedOutcome([]) });
+    expect(captured!.body).toContain('hkcashrebate');
+    expect(captured!.body).toContain('冇搵到限時優惠');
+  });
+
+  it('有優惠被過濾走 → note 講埋抽到幾多、寫入幾多', async () => {
+    const { captured } = await run({
+      outcome: extractedOutcome([extracted(), extracted({ slug: 'x', looks_like_base_terms: true })]),
+    });
+    expect(captured!.body).toContain('抽到 2 個優惠，寫入 1 個');
+  });
+});
+
 describe('提議官方來源（crowdsourced → official 升級路徑）', () => {
   it('第三方文章 link 住官方頁 → 加入 sources.json 並且喺 PR body 講明', async () => {
     // 冇呢條 link，第三方發現嘅優惠會永遠停喺 crowdsourced——「快」嘅價值
