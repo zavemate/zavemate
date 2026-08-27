@@ -12,6 +12,34 @@
  * 唔會改任何數值——call 嗰邊（agent orchestration，未寫）負責 catch 咗之後
  * check_fail_count += 1、更新 last_checked_at，唔降 confidence。
  */
+import { setDefaultAutoSelectFamilyAttemptTimeout } from 'node:net';
+
+/**
+ * Node 嘅 Happy Eyeballs 每個 address 只俾 250ms 就放棄，對銀行站嚟講太急。
+ *
+ * `fetch()` 底層行 `autoSelectFamily`：逐個 DNS address 試連，每個俾
+ * `autoSelectFamilyAttemptTimeout`（Node default 250ms）。時間到就 abort 咗
+ * 嗰個 address 轉下一個；**冇下一個就直接 ETIMEDOUT**。
+ *
+ * 而 `av.sc.com`（Imperva）由香港連過去 TCP handshake 量到 217ms——就喺
+ * 250ms 隔籬。實測同一份 PDF 連拉 6 次：default 之下 3 次 `ETIMEDOUT`，
+ * 而且每次都係 258ms 死（唔係 20 秒，即係唔關 `DEFAULT_TIMEOUT_MS` 事）；
+ * 校到 2 秒之後 6 次全過。curl 打同一條 URL 一路都係 200。
+ *
+ * 點解一定要修：一個完全健康嘅 source 會扮 `fetch_failed`，於是
+ * `check_fail_count` 累加、夠三次標 `broken-source`，同時 `last_verified_at`
+ * 靜靜哋唔郁。呢個正正係「唔好靜靜錯」嗰種 failure mode——對外 provenance
+ * 話核實唔到，實情係我哋自己個 client 早咗 20 秒放棄。
+ *
+ * 2 秒 = 217ms 基線 × 大量餘裕，仍然遠細過 `DEFAULT_TIMEOUT_MS` 嘅 20 秒，
+ * 所以真係死咗嘅 address 一樣 fallback 得切。
+ *
+ * ⚠️ 呢個係 process-wide 設定。擺喺 fetch.ts 係因為佢係全個系統唯一
+ * 出網嘅位，import 佢嘅人一律想要呢個行為。
+ */
+const AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS = 2_000;
+setDefaultAutoSelectFamilyAttemptTimeout(AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS);
+
 export type RenderMode = 'html' | 'js' | 'pdf';
 
 export interface FetchResult {
