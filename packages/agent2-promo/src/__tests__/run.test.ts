@@ -17,6 +17,8 @@ function source(overrides: Partial<Sources['sources'][number]> = {}): Sources['s
     source_type: 'third_party',
     card_ids: ['hsbc_red'],
     content_hash: null,
+    feed_format: null,
+    item_hashes: {},
     last_checked_at: null,
     check_fail_count: 0,
     active: true,

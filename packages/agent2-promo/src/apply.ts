@@ -2,6 +2,7 @@ import type { MatchCriteria, Promotion, PromotionReward } from '@zavemate/schema
 import { findSuspectedDuplicates, type SuspectedDuplicate } from './dedupe.ts';
 import type { ExistingPromotion, ExtractedPromotion } from './extraction.ts';
 import { normalizeSlug, promotionId } from './id.ts';
+import { daysBetween, EXPIRY_GRACE_DAYS } from './expire.ts';
 
 export interface ApplyPromoResult {
   /** promotion_id → 新／改咗嘅 Promotion。冇郁過嘅唔會出現。 */
@@ -73,6 +74,25 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
 
     if (promo.card_id === null) {
       attentionNeeded.push(`「${promo.title}」對唔上任何一張已知嘅卡——冇寫入。可能係我哋未收錄嗰張卡`);
+      continue;
+    }
+
+    // 一出世就已經死咗嘅優惠，唔好收。
+    //
+    // 舊 promotion 過期係由 §6.5 步驟 0 熄（active: false，唔刪檔——歷史係
+    // 產品資產）。但「新抽到一個過咗期好耐嘅優惠」唔同：佢喺我哋個事實層
+    // 入面從來冇生效過，收咗佢即係開一個檔、出一條 change event、落一行
+    // PR，然後下個週期即刻熄返——全部都係噪音。
+    //
+    // Feed 一拆開就會見到幾個月舊文，所以呢個 guard 而家先變得重要：冇佢
+    // 嘅話，第一次跑會一次過寫一批死咗嘅優惠入 repo。
+    //
+    // 用返同一個 EXPIRY_GRACE_DAYS：銀行成日過咗期第二日先改官網，所以
+    // 「啱啱先完」嗰啲照收，同步驟 0 嘅判斷保持一致。
+    if (promo.end_date !== null && daysBetween(promo.end_date, input.today) > EXPIRY_GRACE_DAYS) {
+      attentionNeeded.push(
+        `「${promo.title}」end_date ${promo.end_date} 已經過咗（今日 ${input.today}）——冇寫入。呢篇係 feed 入面嘅舊文`,
+      );
       continue;
     }
 
