@@ -1,4 +1,51 @@
 {
-  "note": "Agent 2 嘅監察來源——去邊度搵未知嘅新優惠。同 Card.sources[]（Agent 1 監察張卡自己啲條款）係兩件事，同一條 URL 可以兩邊都有。",
-  "sources": []
+  "note": "Agent 2 嘅監察來源——去邊度搵未知嘅新優惠。同 Card.sources[]（Agent 1 監察張卡自己啲條款）係兩件事，同一條 URL 可以兩邊都有，因為佢哋問緊唔同問題。官方來源準但慢；第三方平台快（銀行特登將優惠散佈落嗰度俾更多人知），但要返去官方核實先升得到 official。",
+  "sources": [
+    {
+      "active": true,
+      "card_ids": [
+        "hsbc_everymile",
+        "hsbc_premier_mastercard",
+        "hsbc_red"
+      ],
+      "check_fail_count": 0,
+      "content_hash": null,
+      "label": "滙豐信用卡簽賬優惠及回贈",
+      "last_checked_at": null,
+      "render_mode": "html",
+      "source_id": "hsbc_credit_cards_hub",
+      "source_type": "official",
+      "url": "https://www.hsbc.com.hk/zh-hk/credit-cards/"
+    },
+    {
+      "active": true,
+      "card_ids": [
+        "sc_cathay_mastercard",
+        "sc_cathay_mastercard_priority",
+        "sc_cathay_mastercard_priority_private",
+        "sc_simply_cash_visa",
+        "sc_smart"
+      ],
+      "check_fail_count": 0,
+      "content_hash": null,
+      "label": "渣打信用卡優惠總覽",
+      "last_checked_at": null,
+      "render_mode": "html",
+      "source_id": "sc_credit_card_offers",
+      "source_type": "official",
+      "url": "https://www.sc.com/hk/credit-cards/offers/"
+    },
+    {
+      "active": true,
+      "card_ids": [],
+      "check_fail_count": 0,
+      "content_hash": null,
+      "label": "HKCashRebate 現金回贈信用卡攻略",
+      "last_checked_at": null,
+      "render_mode": "html",
+      "source_id": "hkcashrebate",
+      "source_type": "third_party",
+      "url": "https://hkcashrebate.com/"
+    }
+  ]
 }
