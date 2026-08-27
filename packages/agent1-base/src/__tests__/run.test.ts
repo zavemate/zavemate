@@ -252,6 +252,47 @@ describe('runAgent1', () => {
     expect(byId.rule_b.provenance.check_fail_count).toBe(1);
   });
 
+  it('零改動嘅 run：changed 係 0，gate 過，冇 broken source', async () => {
+    // 呢個組合就係 workflow 自動 merge 嘅條件。用戶決定保持週跑，但全綠又冇
+    // 實質改動嘅 PR 唔使人手撳——而條件特登窄過「gate 過晒」，因為 gate 捉唔
+    // 到「合理但錯」嘅改動。
+    const unchangedProvider: LLMProvider = {
+      name: 'unchanged',
+      async extractJson() {
+        return {
+          data: {
+            rules: [
+              {
+                rule_id: 'demo_card_online',
+                found: true,
+                reward: { type: 'cash_rebate', rate: 0.04, points_per_hkd: null, hkd_per_mile: null },
+                cap_value: null,
+                cap_unit: null,
+                effective_from: null,
+                confidence: 'official',
+                evidence_excerpt: '網上簽賬回贈 4%',
+              },
+            ],
+          },
+          usage: { tokensIn: 1, tokensOut: 1, costUsd: 0, model: 'fake' },
+        };
+      },
+    };
+
+    const result = await runAgent1({
+      provider: unchangedProvider,
+      githubToken: 'fake-token',
+      cards: [card({ rewards: [rewardRule({ provenance: provenance({ source_url: 'https://example.com/' }) })] })],
+      now: NOW,
+      runPipelineFn: stubPipeline(),
+      openPRFn: async (params) => ({ number: 9, url: 'https://x/9', branchName: params.branchName }),
+    });
+
+    expect(result.changed).toBe(0);
+    expect(result.gatePassed).toBe(true);
+    expect(result.brokenSources).toEqual([]);
+  });
+
   it('冇任何 rule（新卡都冇）→ 唔開 PR', async () => {
     const result = await runAgent1({
       provider: fakeProvider,

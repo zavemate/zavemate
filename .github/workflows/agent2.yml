@@ -68,3 +68,16 @@ jobs:
             -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           [ "$STATE" = success ]
+
+      # 同 agent1.yml 一樣：淨係更新 source timestamp／hash 嘅 PR 自動 merge。
+      # Agent 2 逢二／四／六跑，噪音比 Agent 1 多三倍，而大部分時間銀行冇出
+      # 新優惠——嗰啲 PR 人睇同唔睇冇分別。
+      #
+      # ⚠️ 有任何優惠新增／更新／過期／提議新來源都要人睇。
+      - name: 零改動嘅 PR 自動 merge
+        if: steps.agent2.outputs.auto_mergeable == 'true' && steps.agent2.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.agent2.outputs.pr_url }}" --squash --delete-branch
+          echo "零改動，已自動 merge：${{ steps.agent2.outputs.pr_url }}"
