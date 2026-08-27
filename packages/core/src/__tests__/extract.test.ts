@@ -144,3 +144,23 @@ describe('evidenceSupportedBy', () => {
     expect(evidenceSupportedBy(source, '8%')).toBe(false);
   });
 });
+
+describe('normalizeForEvidence（排版差異唔算內容差異）', () => {
+  it('彎引號同直引號當一樣', () => {
+    // 實測個案：渣打 Cathay 三條 rule 被報「evidence 對唔上」，成個分別就係
+    // (“Miles”) vs ("Miles")。一個排版差異令三條啱嘅 rule 差啲被降做 unconfirmed。
+    expect(evidenceSupportedBy('earn 1 Asia Mile (“Miles”) for every', 'earn 1 Asia Mile ("Miles") for every')).toBe(true);
+  });
+
+  it('彎單引號同直單引號當一樣', () => {
+    expect(evidenceSupportedBy("the Bank’s decision is final", "the Bank's decision is final")).toBe(true);
+  });
+
+  it('各種 dash 折埋做 hyphen', () => {
+    expect(evidenceSupportedBy('HKD 4,000 – HKD 14,999 tier', 'HKD 4,000 - HKD 14,999 tier')).toBe(true);
+  });
+
+  it('內容真係唔同就照樣捉得住', () => {
+    expect(evidenceSupportedBy('earn 1 Asia Mile for every HKD8 spent', 'earn 1 Asia Mile for every HKD6 spent')).toBe(false);
+  });
+});

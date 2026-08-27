@@ -123,7 +123,21 @@ export function assessExtraction(text: string): ExtractionAssessment {
  * 括號同半形亦要當同一個字，否則逐字比對會誤判。
  */
 export function normalizeForEvidence(text: string): string {
-  return text.replace(/\s+/g, '').replace(/[「」『』（）()]/g, '');
+  return (
+    text
+      // 彎引號 vs 直引號：PDF 抽出嚟嘅文字用「smart quotes」，而人手抄落 JSON
+      // 通常打直引號。實測渣打 Cathay 三條 rule「evidence 對唔上」，成個分別
+      // 就係 (“Miles”) vs ("Miles")——內容一個字都冇差。
+      //
+      // 唔折疊嘅話，一個純粹嘅排版差異會被報成「出處撐唔住呢個數字」，然後
+      // 我哋會將一條啱嘅 rule 降做 unconfirmed。誤報同漏報一樣傷。
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+      // 各種 dash 同 minus 都折埋做 hyphen（表格同日期範圍好常見）。
+      .replace(/[\u2010-\u2015\u2212]/g, '-')
+      .replace(/\s+/g, '')
+      .replace(/[「」『』（）()]/g, '')
+  );
 }
 
 export function evidenceSupportedBy(sourceText: string, excerpt: string | null): boolean {
