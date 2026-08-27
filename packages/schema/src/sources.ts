@@ -69,14 +69,21 @@ export const Source = z.strictObject({
    * 一個仲 running 但出咗街一個月以上嘅優惠我哋由頭到尾唔會見過。實測 page 2
    * 第一篇就係「滙豐HSBC最紅內地簽賬優惠」，正正係我哋覆蓋緊嗰批卡。
    *
-   * 揭幾深係成本同噪音嘅取捨：一頁一個月，而推廣期超過半年嘅通常已經係張卡
-   * 嘅長期結構而唔係限時優惠。所以 4 頁（約半年）就夠接住所有仲生效嘅優惠，
-   * 再深就淨係抽返一堆過咗期、跟住被 apply 擋走嘅嘢。
+   * 揭幾深係成本同噪音嘅取捨。2026-08-27 逐頁數過：寫得入嘅優惠**全部嚟自
+   * page 1–2**；page 3–4 有五篇係我哋覆蓋緊嘅發卡行，但一條都入唔到——全部
+   * 已經過期，會畀 apply 嘅過期 guard 擋走。即係再揭深啲淨係燒錢兼刷 PR。
+   *
+   * 配合 cron 一星期跑三次（一/三/五）：page 1 一頁裝到五個星期嘅文，接新
+   * post 綽綽有餘，page 2 係「再深啲都係舊嘢」嘅確認。
    *
    * 呢個只係上限。實際會揭到某一頁「全部 item 都已經睇過」為止——所以穩定
-   * 狀態通常揭兩頁就停。
+   * 狀態通常揭一至兩頁就停。
+   *
+   * 💡 想 seed 一個全新 feed（或者補返舊嘢）就臨時調高再跑一次。因為特登冇
+   * 「成個 feed hash 冇變就收工」嗰個閘（見 pipeline.ts），調高咗下次跑真係
+   * 會揭落去，唔會因為第一頁冇改過而卡住。
    */
-  feed_max_pages: z.number().int().positive().default(4),
+  feed_max_pages: z.number().int().positive().default(2),
   last_checked_at: z.string().datetime().nullable().default(null),
   /** 連續 fetch 失敗次數，連續 3 次就標 broken-source（§6.2）。 */
   check_fail_count: z.number().int().nonnegative().default(0),

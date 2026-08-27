@@ -19,7 +19,7 @@ function source(overrides: Partial<Sources['sources'][number]> = {}): Sources['s
     content_hash: null,
     feed_format: null,
     item_hashes: {},
-    feed_max_pages: 4,
+    feed_max_pages: 2,
     last_checked_at: null,
     check_fail_count: 0,
     active: true,
