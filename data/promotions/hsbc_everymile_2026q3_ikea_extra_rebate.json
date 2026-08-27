@@ -1,0 +1,57 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_everymile_2026q3_ikea_extra_rebate_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 1000
+  },
+  "card_id": "hsbc_everymile",
+  "description": null,
+  "end_date": "2026-09-30",
+  "match": {
+    "channel": [
+      "online",
+      "offline"
+    ],
+    "currency": [
+      "HKD"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "IKEA"
+    ],
+    "min_spend_per_txn": null,
+    "scope": "criteria"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_everymile_2026q3_ikea_extra_rebate",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "推廣期由2026年8月6日至9月30日，一經登記，憑恒生信用卡去宜家家居分店／網店每階段累積簽賬滿指定金額，可享額外回贈...每位合資格客戶於整個推廣期之額外獎賞上限為$1,000 +FUN Dollars／200,000 yuu積分。",
+    "last_checked_at": "2026-08-27T16:03:21.640Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": 1000,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": null,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-08-06",
+  "title": "恒生信用卡IKEA額外回贈"
+}
