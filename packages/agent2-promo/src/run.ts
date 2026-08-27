@@ -170,10 +170,12 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
         source_type: 'official',
         card_ids: cardIds,
         content_hash: null,
-        // 銀行官方優惠頁唔會係 feed，所以呢兩個欄位由零開始。
+        // 銀行官方優惠頁唔會係 feed，所以呢幾個欄位由零開始
+        // （`feed_format: null` 之下 `feed_max_pages` 根本行唔到，但唔好留一個
+        //  同 schema 預設唔同嘅數，第日有人 copy 出去就變咗個 bug）。
         feed_format: null,
         item_hashes: {},
-        feed_max_pages: 4,
+        feed_max_pages: 2,
         last_checked_at: null,
         check_fail_count: 0,
         active: true,
