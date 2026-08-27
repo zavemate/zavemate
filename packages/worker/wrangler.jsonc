@@ -42,6 +42,11 @@
     }
   ],
 
+  // R2 public bucket。agent 拉大檔直接由 CDN 出，唔經 Worker。
+  "vars": {
+    "DATA_ORIGIN": "https://data.zavemate.com"
+  },
+
   "observability": {
     "enabled": true
   }

@@ -55,9 +55,12 @@ export async function handle(request: Request, env: Env, now: Date = new Date())
         generated_at: index.generated_at,
         coverage: index.coverage,
         urls: {
-          full: `${url.origin}/v1/snapshot/${version}/full.json`,
-          index: `${url.origin}/v1/snapshot/${version}/index.json`,
+          // 大檔優先行 R2 public bucket；冇設就 fallback 經 Worker。
+          full: env.DATA_ORIGIN ? `${env.DATA_ORIGIN}/v/${version}/full.json` : `${url.origin}/v1/snapshot/${version}/full.json`,
+          index: env.DATA_ORIGIN ? `${env.DATA_ORIGIN}/v/${version}/index.json` : `${url.origin}/v1/snapshot/${version}/index.json`,
+          // 單卡同 status 留返喺 Worker：card 要跟最新版本，唔係固定路徑。
           card: `${url.origin}/v1/card/{card_id}`,
+          changes: env.DATA_ORIGIN ? `${env.DATA_ORIGIN}/changes/{year}.jsonl` : null,
         },
       },
       { cacheControl: SHORT_LIVED, etag },
