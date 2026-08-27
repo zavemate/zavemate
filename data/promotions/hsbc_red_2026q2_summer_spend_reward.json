@@ -1,0 +1,50 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_red_2026q2_summer_spend_reward_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 2300
+  },
+  "card_id": "hsbc_red",
+  "description": null,
+  "end_date": "2026-08-31",
+  "match": {
+    "channel": null,
+    "currency": null,
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": null,
+    "min_spend_per_txn": null,
+    "scope": "undetermined"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_red_2026q2_summer_spend_reward",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "推廣期由2026年6月1日至8月31日，一經登記，憑恒生信用卡作合資格簽賬滿指定金額（全部只計算單一簽賬滿$500），可享以下優惠：階段1：2026年6月1日至6月30日；階段2：2026年7月1日至7月31日；階段3：2026年8月1日至8月31日。全期夾埋最多可以賺到高達$2,300 +FUN Dollars！",
+    "last_checked_at": "2026-08-27T16:03:21.640Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": 2300,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": null,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-06-01",
+  "title": "恒生信用卡夏日簽賬賞：高達額外$2,300 +FUN Dollars"
+}
