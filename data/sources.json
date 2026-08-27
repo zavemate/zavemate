@@ -39,13 +39,13 @@
       "active": true,
       "card_ids": [],
       "check_fail_count": 0,
-      "content_hash": "ab4de0cdc70cb48635cb3f37d69c0214608e2413bc9afad4adba729d195210af",
-      "label": "HKCashRebate 現金回贈信用卡攻略",
-      "last_checked_at": "2026-08-27T07:21:31.619Z",
+      "content_hash": null,
+      "label": "HKCashRebate 限時優惠專欄",
+      "last_checked_at": null,
       "render_mode": "html",
       "source_id": "hkcashrebate",
       "source_type": "third_party",
-      "url": "https://hkcashrebate.com/"
+      "url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0"
     }
   ]
 }
