@@ -19,6 +19,14 @@
             "null"
           ]
         },
+        "card_aliases": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
         "card_id": {
           "minLength": 1,
           "pattern": "^[a-z0-9][a-z0-9_]*$",

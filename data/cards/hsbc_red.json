@@ -2,6 +2,11 @@
   "active": true,
   "annual_fee": 0,
   "annual_fee_waiver_note": "官方 Key Facts Statement 列明 Annual Fee「Waived permanently」（基本卡同 additional card combined billing 都係），故 annual_fee 直接填 0。",
+  "card_aliases": [
+    "Red 卡",
+    "Red卡",
+    "紅卡"
+  ],
   "card_id": "hsbc_red",
   "card_name": "HSBC Red Credit Card",
   "card_name_zh": "滙豐 Red 信用卡",

@@ -220,6 +220,17 @@ export const CardBase = z.strictObject({
    * 「匯豐」係「滙豐」嘅異體寫法，兩個都要收——差一個字就會漏。
    */
   issuer_aliases: z.array(z.string().min(1)).default([]),
+  /**
+   * 呢張卡喺文章／條款度嘅叫法（唔連發卡行名）。
+   *
+   * 用嚟捉**卡級排除條款**。2026-08-27 真跑：一個滙豐優惠嘅 evidence 最尾
+   * 一句寫住「滙豐 EveryMile 信用卡並不適用於此推廣」，但佢就係被寫俾
+   * hsbc_everymile——發卡行 guard 捉唔到，因為 issuer 真係滙豐，錯喺卡級。
+   *
+   * ⚠️ 揀 alias 要夠獨特。「Red」唔可以淨係咁寫——`registered`、`required`
+   * 入面都有 "red"。ASCII alias 會用字界比對，但一個太短嘅 alias 一樣會誤中。
+   */
+  card_aliases: z.array(z.string().min(1)).default([]),
   network: Network,
   annual_fee: z.number().nonnegative(),
   annual_fee_waiver_note: z.string().nullable(),

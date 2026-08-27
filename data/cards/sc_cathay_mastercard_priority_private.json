@@ -2,6 +2,10 @@
   "active": true,
   "annual_fee": 8000,
   "annual_fee_waiver_note": "官方年費豁免條款：喺上一個年度內（即由信用卡發卡日期之週年日起）維持 HK$8,000,000 或以上每日平均總結餘（即符合優先私人理財資格）即可享年費豁免；須於年費誌賬月份符合條件先可享有。",
+  "card_aliases": [
+    "優先私人財富國泰",
+    "Priority Private Cathay"
+  ],
   "card_id": "sc_cathay_mastercard_priority_private",
   "card_name": "Standard Chartered Cathay Mastercard – Priority Private",
   "card_name_zh": "渣打國泰 Mastercard – 優先私人理財",

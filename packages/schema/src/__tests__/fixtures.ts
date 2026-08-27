@@ -45,6 +45,7 @@ export function card(overrides: Record<string, unknown> = {}): Record<string, un
     card_name_zh: '示範卡',
     issuer: 'Example Bank',
     issuer_aliases: [],
+    card_aliases: [],
     network: 'visa',
     annual_fee: 0,
     annual_fee_waiver_note: null,

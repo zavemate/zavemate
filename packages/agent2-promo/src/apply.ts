@@ -13,14 +13,41 @@ export interface ApplyPromoResult {
   suspectedDuplicates: SuspectedDuplicate[];
 }
 
+/** 每個 reward.type 對應嘅數值欄位——同 Promotion schema 嗰個表一致。 */
+const REWARD_FIELD = {
+  rate_multiplier: 'multiplier',
+  flat_rate: 'rate',
+  cash_rebate: 'rate',
+  bonus_points: 'bonus_amount',
+  miles: 'hkd_per_mile',
+} as const;
+
+/**
+ * 淨係保留同 type 對應嗰個欄位，其餘一律 null。
+ *
+ * 之前原封不動抄 LLM 五個欄位落去，而 LLM 成日一次過填幾個——例如
+ * `{type: 'cash_rebate', rate: 0.06, bonus_amount: 800}`（6% 上限 $800）。
+ * Schema 明文寫住 `cash_rebate` 只可以有 `rate`，於是每一條都過唔到 validate。
+ * 上限應該住喺 `cap` 度，唔係 `reward` 度。
+ *
+ * 對應欄位本身係空或者唔合理（<= 0）就交 null——由 call 嗰邊當「抽取結果
+ * 自相矛盾」處理。**特登唔喺度砌返個數出嚟**：一個講住 cash_rebate 但淨係
+ * 俾到「送 $1,000」嘅優惠，我哋唔知個 rate 係幾多，唔可以自己除返出嚟。
+ */
 function toReward(extracted: ExtractedPromotion['reward']): PromotionReward | null {
   if (extracted === null || extracted.type === null) return null;
+
+  const field = REWARD_FIELD[extracted.type];
+  const value = extracted[field];
+  if (value === null || value <= 0) return null;
+
   return {
     type: extracted.type,
-    rate: extracted.rate,
-    multiplier: extracted.multiplier,
-    bonus_amount: extracted.bonus_amount,
-    hkd_per_mile: extracted.hkd_per_mile,
+    rate: null,
+    multiplier: null,
+    bonus_amount: null,
+    hkd_per_mile: null,
+    [field]: value,
   };
 }
 
@@ -51,7 +78,7 @@ export interface ApplyPromoInput {
   /** 餵過俾 LLM 睇嗰批（同卡同季度），用嚟做去重兜底。 */
   existingForPrompt: ExistingPromotion[];
   /** 呢個來源涉及嘅卡——要 issuer 做機器驗證，唔淨係 card_id。 */
-  cards: Array<{ card_id: string; issuer: string; issuer_aliases: string[] }>;
+  cards: Array<{ card_id: string; issuer: string; issuer_aliases: string[]; card_aliases: string[] }>;
   sourceUrl: string;
   sourceType: 'official' | 'third_party';
   /** yyyy-mm-dd */
@@ -81,6 +108,46 @@ function issuerMentioned(
 ): boolean {
   const haystack = `${title}\n${evidence ?? ''}`.toLowerCase();
   return [card.issuer, ...card.issuer_aliases].some((name) => haystack.includes(name.toLowerCase()));
+}
+
+
+/** 條款講「唔適用」嗰啲字眼。 */
+const EXCLUSION_MARKERS = ['並不適用', '不適用', '唔適用', '恕不適用', '除外', '不包括', '唔包括', '不可享', 'not applicable', 'excluded'];
+
+/** ASCII alias 要字界，唔係就 "Red" 會撞中 "registered" / "required"。 */
+function aliasPattern(alias: string): RegExp {
+  const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return /^[\x00-\x7F]+$/.test(alias) ? new RegExp(`\\b${escaped}\\b`, 'i') : new RegExp(escaped, 'i');
+}
+
+/**
+ * 原文有冇明文講呢張卡**唔適用**。
+ *
+ * 2026-08-27 真跑：一個滙豐優惠嘅 evidence 最尾一句係「滙豐 EveryMile 信用卡
+ * 並不適用於此推廣」，但佢就係被 fan out 寫俾 hsbc_everymile。發卡行 guard
+ * 捉唔到——issuer 真係滙豐，錯喺卡級。
+ *
+ * 要睇距離，唔可以淨係「原文有排除字眼就當成篇文都排除」：同一段 evidence
+ * 排除咗 EveryMile，但 Premier 同 Red 係啱嘅，一刀切會連好嘅都掉埋。所以
+ * 淨係當**排除字眼前面嘅一段短窗口**入面出現過呢張卡嘅叫法先算。
+ */
+const EXCLUSION_WINDOW = 40;
+
+function cardExplicitlyExcluded(text: string, aliases: string[]): boolean {
+  if (aliases.length === 0) return false;
+  const lower = text.toLowerCase();
+
+  for (const marker of EXCLUSION_MARKERS) {
+    let from = 0;
+    for (;;) {
+      const at = lower.indexOf(marker.toLowerCase(), from);
+      if (at === -1) break;
+      const window = text.slice(Math.max(0, at - EXCLUSION_WINDOW), at);
+      if (aliases.some((alias) => aliasPattern(alias).test(window))) return true;
+      from = at + marker.length;
+    }
+  }
+  return false;
 }
 
 export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResult {
@@ -146,6 +213,13 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
       continue;
     }
 
+    if (cardExplicitlyExcluded(`${promo.title}\n${promo.evidence_excerpt ?? ''}`, card.card_aliases)) {
+      attentionNeeded.push(
+        `「${promo.title}」原文明文講咗 ${promo.card_id} 唔適用（「並不適用」之類），但佢就係被寫俾呢張卡——冇寫入`,
+      );
+      continue;
+    }
+
     const slug = normalizeSlug(promo.slug);
     if (slug === '') {
       attentionNeeded.push(`「${promo.title}」個 slug "${promo.slug}" 正規化之後係空（要 ASCII 英文）——冇寫入`);
@@ -154,7 +228,7 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
 
     const reward = toReward(promo.reward);
     if (reward === null) {
-      attentionNeeded.push(`「${promo.title}」冇 reward.type——冇寫入。抽取結果自相矛盾`);
+      attentionNeeded.push(`「${promo.title}」個 reward 唔完整（type=${promo.reward?.type ?? 'null'}，對應嘅數值欄位空咗或者 <= 0）——冇寫入。我哋唔會自己砌返個數出嚟`);
       continue;
     }
 
