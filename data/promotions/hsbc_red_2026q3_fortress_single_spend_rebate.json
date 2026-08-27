@@ -1,0 +1,57 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_red_2026q3_fortress_single_spend_rebate_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 750
+  },
+  "card_id": "hsbc_red",
+  "description": null,
+  "end_date": "2026-08-31",
+  "match": {
+    "channel": [
+      "online",
+      "offline"
+    ],
+    "currency": [
+      "HKD"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "豐澤"
+    ],
+    "min_spend_per_txn": null,
+    "scope": "criteria"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_red_2026q3_fortress_single_spend_rebate",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "推廣期由2026年7月1日至8月31日，一經恒生App內登記，憑恒生信用卡去豐澤分店或網店單一簽賬滿指定金額，可享額外回贈：... 滿$12,000回贈$400！... 於整個優惠期內每位客戶最多可獲額外$750 +FUN Dollars（恒生信用卡）/ 150,000積分獎賞（enJoy卡）。",
+    "last_checked_at": "2026-08-27T16:03:21.640Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": 400,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": null,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-07-01",
+  "title": "恒生信用卡豐澤單一簽賬額外回贈"
+}
