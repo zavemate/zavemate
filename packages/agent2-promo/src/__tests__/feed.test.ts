@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { feedItemContent, MAX_FEED_ITEMS_PER_RUN, parseFeedItems, selectFeedWork } from '../feed.ts';
+import { feedItemContent, feedPageUrl, MAX_FEED_ITEMS_PER_RUN, parseFeedItems, selectFeedWork } from '../feed.ts';
 
 /**
  * 一篇夠厚嘅假文章。
@@ -172,5 +172,59 @@ describe('selectFeedWork', () => {
       feed(Array.from({ length: 41 }, (_, i) => item({ guid: `n${i}`, title: `文${i}`, content: body(`n${i}`) }))),
     );
     expect(selectFeedWork(many, {}).toProcess).toHaveLength(40);
+  });
+});
+
+describe('feedPageUrl', () => {
+  const base = 'https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed';
+
+  it('第一頁 = 原本條 URL，一個字都唔郁', () => {
+    expect(feedPageUrl(base, 1)).toBe(base);
+    expect(feedPageUrl(base, 0)).toBe(base);
+  });
+
+  it('第二頁加 ?paged=2', () => {
+    expect(feedPageUrl(base, 2)).toContain('paged=2');
+  });
+
+  it('條 URL 本身有 query 都砌得啱——唔可以硬貼一個第二個 "?"', () => {
+    const withQuery = 'https://x.test/feed?post_type=promo';
+    const paged = new URL(feedPageUrl(withQuery, 3));
+    expect(paged.searchParams.get('post_type')).toBe('promo');
+    expect(paged.searchParams.get('paged')).toBe('3');
+  });
+});
+
+describe('allKnown（揭唔揭下一頁）', () => {
+  const items = parseFeedItems(
+    feed([
+      item({ guid: 'p1', title: '一', content: body('one') }),
+      item({ guid: 'p2', title: '二', content: body('two') }),
+    ]),
+  );
+
+  it('成頁都睇過 → allKnown，停', () => {
+    const first = selectFeedWork(items, {});
+    const known = Object.fromEntries(first.toProcess.map((w) => [w.item.guid, w.hash]));
+    expect(selectFeedWork(items, known).allKnown).toBe(true);
+  });
+
+  it('有一篇未睇過 → 唔算 allKnown，繼續揭', () => {
+    const first = selectFeedWork(items, {});
+    const known = Object.fromEntries(first.toProcess.slice(0, 1).map((w) => [w.item.guid, w.hash]));
+    expect(selectFeedWork(items, known).allKnown).toBe(false);
+  });
+
+  it('第一次跑（known 空）→ 一定唔算 allKnown，所以會一路揭到上限', () => {
+    expect(selectFeedWork(items, {}).allKnown).toBe(false);
+  });
+
+  it('讀唔到嗰篇唔算「睇過」——會令我哋繼續揭，直到讀得成', () => {
+    const thin = parseFeedItems(
+      feed([item({ guid: 'ok', title: '正常', content: body('ok') }), item({ guid: 'thin', title: '薄', content: '<p>睇官網</p>' })]),
+    );
+    const first = selectFeedWork(thin, {});
+    const known = Object.fromEntries(first.toProcess.map((w) => [w.item.guid, w.hash]));
+    expect(selectFeedWork(thin, known).allKnown).toBe(false);
   });
 });

@@ -110,6 +110,13 @@ export interface FeedWork {
    * item 砌返出嚟，跌咗出 feed 嘅舊文自然唔會再喺度。
    */
   carried: Record<string, string>;
+  /**
+   * 呢一頁每一篇都已經睇過而且冇改過。
+   *
+   * 揭下一頁嘅停止訊號：feed 係按時間倒序排，所以一揭到一整頁都係舊嘢，
+   * 再深嘅只會更舊。穩定狀態通常第二頁就命中，即係揭兩頁就停。
+   */
+  allKnown: boolean;
   notes: string[];
 }
 
@@ -168,5 +175,22 @@ export function selectFeedWork(
     `${items.length} 篇文，${Object.keys(carried).length} 篇 hash 命中冇改過，${toProcess.length} 篇要重新讀`,
   );
 
-  return { toProcess, carried, notes };
+  // 「太薄」嗰啲兩邊都唔喺——所以佢哋會令我哋繼續揭落去，直到讀得成為止。
+  // 呢個係啱嘅：一篇未讀到嘅文唔可以當睇過。
+  const allKnown = items.length > 0 && Object.keys(carried).length === items.length;
+
+  return { toProcess, carried, allKnown, notes };
+}
+
+/**
+ * 砌第 N 頁嘅 feed URL。第一頁 = 原本條 URL 唔郁。
+ *
+ * 用 `URL` 唔用字串拼：條 URL 本身可能已經有 query（例如 `?post_type=…`），
+ * 直接貼 `?paged=2` 落去就會砌出一條壞 URL。
+ */
+export function feedPageUrl(baseUrl: string, page: number): string {
+  if (page <= 1) return baseUrl;
+  const url = new URL(baseUrl);
+  url.searchParams.set('paged', String(page));
+  return url.toString();
 }
