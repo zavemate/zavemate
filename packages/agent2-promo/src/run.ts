@@ -166,6 +166,7 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     const result = applyExtractedPromotions({
       extracted: outcome.result.promotions,
       existing: promotions,
+      cards: cardsForSource(cards, source),
       existingForPrompt: existingForPrompt(promotions, source.card_ids, quarterLabel(today)),
       sourceUrl: source.url,
       sourceType: source.source_type,

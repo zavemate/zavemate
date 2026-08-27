@@ -112,13 +112,13 @@ export interface PromoPromptInput {
   sourceLabel: string;
   sourceType: 'official' | 'third_party';
   /** 呢個來源可能涉及嘅卡。 */
-  cards: Array<{ card_id: string; card_name: string }>;
+  cards: Array<{ card_id: string; card_name: string; issuer: string }>;
   existing: ExistingPromotion[];
   today: string;
 }
 
 export function buildPromoSystemPrompt(input: PromoPromptInput): string {
-  const cardList = input.cards.map((c) => `- ${c.card_id}：${c.card_name}`).join('\n') || '（冇提供）';
+  const cardList = input.cards.map((c) => `- ${c.card_id}：${c.card_name}（發卡行：${c.issuer}）`).join('\n') || '（冇提供）';
   const existingList =
     input.existing
       .map(
@@ -165,6 +165,10 @@ ${existingList}
    EveryMile卡上限$30」），就逐條填返嗰張卡自己嗰個數。
    **null 嘅意思係「一張都對唔上」，唔係「對上太多」。**呢個分別好重要：
    一個適用於全部滙豐卡嘅優惠填 null，等於我哋當佢唔存在。
+   **但 fan out 只限於篇文真正講緊嗰間發卡行。**恒生（Hang Seng）唔係滙豐
+   （HSBC）——就算恒生係滙豐集團成員、中文名又似，都係兩間唔同嘅發卡行，
+   一張卡嘅優惠絕對唔通用。同樣：中銀唔係中信、安信唔係東亞。
+   篇文寫「憑恒生信用卡」，而清單入面一張恒生卡都冇 → card_id 填 null。
 7. 適用範圍：填得到幾多就填幾多（match_channel / match_currency /
    match_merchant_include）。如果官方有講範圍但你用呢幾個欄位表達唔到
    （例如佢只係寫「餐飲類別」而冇俾商戶清單），scope_not_expressible 填 true。

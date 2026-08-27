@@ -11,6 +11,10 @@
   },
   "fx_fee_rate": 0.0195,
   "issuer": "HSBC",
+  "issuer_aliases": [
+    "滙豐",
+    "匯豐"
+  ],
   "network": "visa",
   "provenance": {
     "check_fail_count": 0,

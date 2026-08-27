@@ -11,6 +11,9 @@
   },
   "fx_fee_rate": 0,
   "issuer": "Standard Chartered",
+  "issuer_aliases": [
+    "渣打"
+  ],
   "network": "mastercard",
   "provenance": {
     "check_fail_count": 0,

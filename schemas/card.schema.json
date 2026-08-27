@@ -71,6 +71,14 @@
           "minLength": 1,
           "type": "string"
         },
+        "issuer_aliases": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
         "network": {
           "enum": [
             "visa",

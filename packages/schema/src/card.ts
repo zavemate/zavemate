@@ -206,6 +206,20 @@ export const CardBase = z.strictObject({
   card_name: z.string().min(1),
   card_name_zh: z.string().nullable(),
   issuer: z.string().min(1),
+  /**
+   * 發卡行喺文章／條款度可能點寫（中英文、異體字）。
+   *
+   * 用嚟做一個機器檢查：Agent 2 抽到一個優惠掛落呢張卡嗰陣，`issuer` 或者
+   * 其中一個 alias 一定要真係喺原文出現過。唔出現就唔寫入。
+   *
+   * 點解要呢個：2026-08-27 真跑，恒生（Hang Seng）嘅 IKEA／萬寧／豐澤／繳費
+   * 優惠全部掛咗落三張滙豐（HSBC）卡度——恒生係滙豐集團成員，中文名又似，
+   * LLM 當咗同一間。而 evidence_excerpt 白紙黑字寫住「憑**恒生**信用卡」，
+   * 即係**證據本身已經推翻咗個判斷**。噉就唔使靠 LLM 自律，機器驗得到。
+   *
+   * 「匯豐」係「滙豐」嘅異體寫法，兩個都要收——差一個字就會漏。
+   */
+  issuer_aliases: z.array(z.string().min(1)).default([]),
   network: Network,
   annual_fee: z.number().nonnegative(),
   annual_fee_waiver_note: z.string().nullable(),

@@ -4,7 +4,7 @@ import { buildPromoSystemPrompt, type ExistingPromotion, PromoExtractionResult }
 const base = {
   sourceLabel: 'HSBC 信用卡優惠',
   sourceType: 'official' as const,
-  cards: [{ card_id: 'hsbc_red', card_name: 'HSBC Red Credit Card' }],
+  cards: [{ card_id: 'hsbc_red', card_name: 'HSBC Red Credit Card', issuer: 'HSBC' }],
   existing: [] as ExistingPromotion[],
   today: '2026-08-27',
 };
@@ -56,6 +56,13 @@ describe('buildPromoSystemPrompt', () => {
     const prompt = buildPromoSystemPrompt(base);
     expect(prompt).toContain('每張卡各交一條');
     expect(prompt).toContain('唔係「對上太多」');
+  });
+
+  it('卡清單要列明發卡行，同埋警告恒生 ≠ 滙豐', () => {
+    // 2026-08-27 真跑，恒生嘅 IKEA／萬寧／豐澤優惠掛咗落三張滙豐卡度。
+    const prompt = buildPromoSystemPrompt(base);
+    expect(prompt).toContain('發卡行：HSBC');
+    expect(prompt).toContain('恒生（Hang Seng）唔係滙豐');
   });
 
   it('講明點認「攻略站自己俾嘅著數」', () => {

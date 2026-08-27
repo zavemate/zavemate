@@ -50,11 +50,37 @@ export interface ApplyPromoInput {
   existing: Map<string, Promotion>;
   /** 餵過俾 LLM 睇嗰批（同卡同季度），用嚟做去重兜底。 */
   existingForPrompt: ExistingPromotion[];
+  /** 呢個來源涉及嘅卡——要 issuer 做機器驗證，唔淨係 card_id。 */
+  cards: Array<{ card_id: string; issuer: string; issuer_aliases: string[] }>;
   sourceUrl: string;
   sourceType: 'official' | 'third_party';
   /** yyyy-mm-dd */
   today: string;
   nowIso: string;
+}
+
+/**
+ * 篇原文有冇真係提過呢張卡嘅發卡行。
+ *
+ * 2026-08-27 真跑：恒生（Hang Seng）嘅 IKEA／萬寧／豐澤／繳費／夏日簽賬賞
+ * 全部掛咗落三張滙豐（HSBC）卡度，22 條入面錯咗約 14 條。恒生係滙豐集團成員、
+ * 中文名又似，LLM 當咗同一間——而佢**同一次抽取交返嘅 evidence_excerpt 白紙
+ * 黑字寫住「憑恒生信用卡」**。即係證據本身已經推翻咗個 card_id。
+ *
+ * 所以呢度唔問 LLB「你肯唔肯定」，直接攞佢自己交嘅原文嚟對：issuer 或者其中
+ * 一個 alias 要喺 title／evidence 出現過。同 Agent 1 嘅 evidenceSupportedBy
+ * 一樣嘅道理——LLM 可以提議，但唔可以自己認證自己。
+ *
+ * 漏報（一篇真係滙豐嘅文冇寫「滙豐」兩隻字）嘅代價係少收一個優惠，而且會出
+ * attention note 睇得到；誤收一間錯嘅銀行嘅優惠係對外講錯數。兩者唔對稱。
+ */
+function issuerMentioned(
+  title: string,
+  evidence: string | null,
+  card: { issuer: string; issuer_aliases: string[] },
+): boolean {
+  const haystack = `${title}\n${evidence ?? ''}`.toLowerCase();
+  return [card.issuer, ...card.issuer_aliases].some((name) => haystack.includes(name.toLowerCase()));
 }
 
 export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResult {
@@ -104,6 +130,18 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
     if (promo.end_date !== null && daysBetween(promo.end_date, input.today) > EXPIRY_GRACE_DAYS) {
       attentionNeeded.push(
         `「${promo.title}」end_date ${promo.end_date} 已經過咗（今日 ${input.today}）——冇寫入。呢篇係 feed 入面嘅舊文`,
+      );
+      continue;
+    }
+
+    const card = input.cards.find((c) => c.card_id === promo.card_id);
+    if (card === undefined) {
+      attentionNeeded.push(`「${promo.title}」嘅 card_id "${promo.card_id}" 唔喺呢個來源嘅卡清單入面——冇寫入`);
+      continue;
+    }
+    if (!issuerMentioned(promo.title, promo.evidence_excerpt, card)) {
+      attentionNeeded.push(
+        `「${promo.title}」掛咗落 ${promo.card_id}，但原文一次都冇提過 ${card.issuer}——冇寫入。多數係撈亂咗發卡行（恒生 ≠ 滙豐）`,
       );
       continue;
     }
