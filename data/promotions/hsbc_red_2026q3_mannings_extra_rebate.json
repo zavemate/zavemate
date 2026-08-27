@@ -1,0 +1,58 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_red_2026q3_mannings_extra_rebate_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 400
+  },
+  "card_id": "hsbc_red",
+  "description": null,
+  "end_date": "2026-08-31",
+  "match": {
+    "channel": [
+      "online",
+      "offline"
+    ],
+    "currency": [
+      "HKD"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "萬寧",
+      "GNC"
+    ],
+    "min_spend_per_txn": null,
+    "scope": "criteria"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_red_2026q3_mannings_extra_rebate",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "優惠期由2026年7月1日至8月31日，一經恒生App內登記，優惠期內以恒生信用卡主卡於香港萬寧門市／網上商店或GNC專門店累積簽賬滿$1,000（只計算單一簽賬滿$500），可享高達10% +FUN Dollars／20X yuu積分",
+    "last_checked_at": "2026-08-27T16:03:21.640Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": null,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": 0.1,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-07-01",
+  "title": "萬寧門市或網店簽賬高達額外10% +FUN Dollars／20X yuu積分"
+}
