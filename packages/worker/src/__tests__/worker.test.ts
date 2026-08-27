@@ -22,6 +22,25 @@ const get = (path: string, headers: Record<string, string> = {}) =>
   new Request(`https://api.zavemate.com${path}`, { headers });
 
 describe('GET /v1/latest', () => {
+  it('設咗 DATA_ORIGIN → 大檔指去 R2 public bucket，唔經 Worker', async () => {
+    // §7.1：我哋做嘅係 snapshot distribution，唔係 query serving。agent 拉
+    // full.json（59 KB，immutable 一年）行 CDN 直出，egress 免費、唔食 Worker
+    // request 額度。
+    const res = await handle(get('/v1/latest'), { ...env(), DATA_ORIGIN: 'https://data.zavemate.com' }, NOW);
+    const body = (await res.json()) as { urls: Record<string, string | null> };
+    expect(body.urls.full).toBe(`https://data.zavemate.com/v/${V}/full.json`);
+    expect(body.urls.changes).toBe('https://data.zavemate.com/changes/{year}.jsonl');
+    // 單卡要跟最新版本，唔係固定路徑，所以留返喺 Worker。
+    expect(body.urls.card).toContain('/v1/card/');
+  });
+
+  it('冇 DATA_ORIGIN → fallback 經 Worker，功能唔會壞', async () => {
+    const res = await handle(get('/v1/latest'), env(), NOW);
+    const body = (await res.json()) as { urls: Record<string, string | null> };
+    expect(body.urls.full).toContain('/v1/snapshot/');
+    expect(body.urls.changes).toBeNull();
+  });
+
   it('回版本、coverage 同各條 URL', async () => {
     const res = await handle(get('/v1/latest'), env(), NOW);
     const body = (await res.json()) as { version: string; urls: Record<string, string>; coverage: Record<string, number> };
