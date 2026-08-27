@@ -82,14 +82,42 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
   }
 
   if (outcome.kind === 'unchanged') {
+    // 內容冇變唔等於當初嗰個數值有證據支持。
+    //
+    // 之前呢度直接將 last_verified_at 更新做「而家」，等於聲稱「今日核實過呢個
+    // 數字」——但實際上只係確認咗「嗰版嘢冇變」。一條由頭到尾冇原文支持嘅 rule，
+    // 會因為出處頁面唔郁而每個星期都顯示啱啱核實過。
+    //
+    // 實測：13 條 rule 有 6 條 evidence 對唔上出處，全部 hash ok——即係全部都係
+    // 靠呢條路徑續命。evidence gate 起咗之後只攔新嘢，唔會回頭洗舊嘢。
+    //
+    // 呢度手上已經有原文（要有先計到 hash），所以驗一次係零成本：唔使叫 LLM、
+    // 唔使多一次 fetch。
+    let unsupported = 0;
     for (const rule of work.rules) {
+      const existing = cardsById.get(rule.cardId)?.rewards.find((r) => r.rule_id === rule.rule_id);
+      const supported = evidenceSupportedBy(outcome.mainContent, existing?.provenance.evidence_excerpt ?? null);
       patchRule(rule.cardId, rule.rule_id, (r) => {
         r.provenance.check_fail_count = 0;
         r.provenance.last_checked_at = now;
-        r.provenance.last_verified_at = now;
+        if (supported) {
+          r.provenance.last_verified_at = now;
+        } else {
+          // 唔郁 last_verified_at——我哋核實唔到，就唔可以話核實過。
+          r.provenance.confidence = 'unconfirmed';
+        }
       });
+      if (!supported) {
+        unsupported += 1;
+        attentionNeeded.push(
+          `${rule.cardId}/${rule.rule_id}：內容冇變，但 evidence_excerpt 喺份文件入面逐字搵唔返——降做 unconfirmed，數值未變。要人手搵返真正嘅原文節錄`,
+        );
+      }
     }
-    notes.push(`✓ ${work.sourceUrl}：內容冇變（hash 一樣），${work.rules.length} 條 rule 已確認仍然有效，唔使餵 LLM`);
+    const verified = work.rules.length - unsupported;
+    notes.push(
+      `✓ ${work.sourceUrl}：內容冇變（hash 一樣），${verified} 條 rule 確認仍然有效${unsupported > 0 ? `，${unsupported} 條 evidence 對唔上（見下面 ⚠️）` : ''}，唔使餵 LLM`,
+    );
     return { updatedCards, notes, brokenSources, attentionNeeded };
   }
 

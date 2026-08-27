@@ -90,11 +90,32 @@ describe('applyWork（unchanged）', () => {
     const cards = new Map([
       ['demo_card', card({ rewards: [rewardRule({ provenance: provenance({ check_fail_count: 2 }) })] })],
     ]);
-    const result = applyWork(cards, makeWork(), { kind: 'unchanged', contentHash: 'old-hash', fetchedAt: NOW }, NOW);
+    const result = applyWork(cards, makeWork(), { kind: 'unchanged', contentHash: 'old-hash', fetchedAt: NOW, mainContent: SOURCE }, NOW);
     const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
     expect(rule.provenance.check_fail_count).toBe(0);
     expect(rule.provenance.last_checked_at).toBe(NOW);
     expect(rule.provenance.last_verified_at).toBe(NOW);
+  });
+
+  it('內容冇變，但 evidence 對唔上 → 降 unconfirmed，唔郁 last_verified_at', () => {
+    // 一條由頭到尾冇原文支持嘅 rule，本來會因為出處頁面唔郁而每個星期都顯示
+    // 啱啱核實過。實測 13 條 rule 有 6 條就係咁續命。
+    const cards = new Map([
+      ['demo_card', card({ rewards: [rewardRule({ provenance: provenance({ evidence_excerpt: '呢句原文入面根本冇' }) })] })],
+    ]);
+    const result = applyWork(cards, makeWork(), { kind: 'unchanged', contentHash: 'old-hash', fetchedAt: NOW, mainContent: SOURCE }, NOW);
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.confidence).toBe('unconfirmed');
+    expect(rule.provenance.last_verified_at).toBe('2026-08-01T00:00:00.000Z'); // 冇郁——核實唔到就唔可以話核實過
+    expect(rule.provenance.last_checked_at).toBe(NOW); // 但查過就係查過
+    expect(result.attentionNeeded.some((n) => n.includes('evidence_excerpt'))).toBe(true);
+  });
+
+  it('內容冇變而 evidence 撐得住 → 照更新 last_verified_at', () => {
+    const result = applyWork(cardsById(), makeWork(), { kind: 'unchanged', contentHash: 'old-hash', fetchedAt: NOW, mainContent: SOURCE }, NOW);
+    const rule = result.updatedCards.get('demo_card')!.rewards[0]!;
+    expect(rule.provenance.last_verified_at).toBe(NOW);
+    expect(rule.provenance.confidence).toBe('official');
   });
 });
 
