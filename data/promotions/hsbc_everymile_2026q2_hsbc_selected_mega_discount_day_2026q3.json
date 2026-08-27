@@ -1,0 +1,58 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_everymile_2026q2_hsbc_selected_mega_discount_day_2026q3_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 1000
+  },
+  "card_id": "hsbc_everymile",
+  "description": null,
+  "end_date": "2026-08-31",
+  "match": {
+    "channel": [
+      "offline"
+    ],
+    "currency": [
+      "HKD",
+      "FOREIGN"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "本地實體店餐飲",
+      "海外實體店簽賬"
+    ],
+    "min_spend_per_txn": null,
+    "scope": "criteria"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_everymile_2026q2_hsbc_selected_mega_discount_day_2026q3",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "推廣期由2026年6月26日至8月31日，一經滙豐Reward+ App登記，可享以下優惠：累積合資格簽賬滿第一層個人目標消費額，當中於實體店所作的本地餐飲及海外簽賬可享額外3%獎賞錢回贈；或上限回贈$300獎賞錢...累積合資格簽賬滿第二層個人目標消費額，當中於實體店所作的本地餐飲及海外簽賬可享額外6%獎賞錢回贈上限回贈$800獎賞錢...如果係合資格用Visa卡簽滿第二層個人目標消費額，額外再享$200獎賞錢...滙豐 EveryMile 信用卡並不適用於此推廣。",
+    "last_checked_at": "2026-08-27T16:18:25.727Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": 1000,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": null,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-06-26",
+  "title": "滙豐特選最紅大折日：高達額外$1,000獎賞錢"
+}
