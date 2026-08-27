@@ -1,0 +1,50 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_premier_mastercard_2026q3_hsbc_visa_insurance_payment_2026q3_cap",
+    "shared_with": [],
+    "unit": "reward",
+    "value": 2800
+  },
+  "card_id": "hsbc_premier_mastercard",
+  "description": null,
+  "end_date": "2027-01-31",
+  "match": {
+    "channel": null,
+    "currency": null,
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": null,
+    "min_spend_per_txn": null,
+    "scope": "undetermined"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_premier_mastercard_2026q3_hsbc_visa_insurance_payment_2026q3",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "另外交保費亦可享高達額外0.5% +FUN Dollars！...就保險繳費優惠，於上述日期分別上限可獲額外$1,000 +FUN Dollars / 200,000 yuu 積分。整個推廣期内上限可獲額外$2,800 +FUN Dollars / 560,000 yuu 積分。",
+    "last_checked_at": "2026-08-27T16:03:21.640Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": null,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": 0.005,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-07-15",
+  "title": "恒生Visa卡保險繳費優惠：高達0.5%回贈"
+}
