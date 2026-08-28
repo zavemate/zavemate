@@ -40,6 +40,8 @@ export type PromoPipelineOutcome =
 
 export interface PromoPipelineInput {
   source: Source;
+  /** 淨係測試用——唔提供就打真網絡。 */
+  fetchFn?: typeof fetchSource;
   cards: Array<{ card_id: string; card_name: string; issuer: string }>;
   existing: ExistingPromotion[];
   today: string;
@@ -49,7 +51,7 @@ export interface PromoPipelineInput {
 export async function runPromoPipeline(input: PromoPipelineInput): Promise<PromoPipelineOutcome> {
   let fetched;
   try {
-    fetched = await fetchSource(input.source.url, input.source.render_mode);
+    fetched = await (input.fetchFn ?? fetchSource)(input.source.url, input.source.render_mode);
   } catch (error) {
     if (error instanceof FetchError) return { kind: 'fetch_failed', error };
     throw error;
@@ -120,6 +122,7 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
 
   const itemHashes: Record<string, string> = {};
   const itemNotes: string[] = [];
+  let walkComplete = true;
   const promotions: PromoExtractionResult['promotions'] = [];
   const usage: Array<{ tokensIn: number; tokensOut: number; costUsd: number; model: string }> = [];
 
@@ -127,12 +130,12 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
     let xml = firstPageXml;
     if (page > 1) {
       try {
-        xml = (await fetchSource(feedPageUrl(input.source.url, page), input.source.render_mode)).content;
+        xml = (await (input.fetchFn ?? fetchSource)(feedPageUrl(input.source.url, page), input.source.render_mode)).content;
       } catch (error) {
         if (!(error instanceof FetchError)) throw error;
         // 第一頁讀到就唔算 fetch_failed——已經抽到嘅嘢照入，淨係唔再揭落去。
-        // 標記出嚟，唔好扮成「揭曬」。
         itemNotes.push(`⚠️ 第 ${page} 頁讀唔到（${error.message}），停咗喺呢度`);
+        walkComplete = false;
         break;
       }
     }
@@ -173,5 +176,23 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
     }
   }
 
-  return { kind: 'extracted', contentHash: sha256(firstPageText), result: { promotions }, usage, itemHashes, itemNotes };
+  // 有一頁讀唔到就一條 hash 都唔好寫。
+  //
+  // 2026-08-27 撞到：第 2 頁 fetch 超時，第 1 頁 12 篇正常讀晒。如果照寫第 1 頁
+  // 嘅 hash，下次跑第 1 頁全部命中 → allKnown → 停——**第 2 頁永遠唔會再揭**，
+  // 而佢從來未成功讀過。sources.json 望落一切正常，但有一頁由頭到尾冇人讀過。
+  //
+  // 代價係下次要重讀第 1 頁（約 $0.012）。同「一頁優惠靜靜哋唔存在」比，抵。
+  // 抽到嘅優惠照入——嗰啲係真嘢，唔關 hash 記帳事。
+  if (!walkComplete) {
+    itemNotes.push('⚠️ 今次揭唔完，所以一條 item hash 都冇寫——下次由第一頁重新讀');
+  }
+  return {
+    kind: 'extracted',
+    contentHash: sha256(firstPageText),
+    result: { promotions },
+    usage,
+    itemHashes: walkComplete ? itemHashes : undefined,
+    itemNotes,
+  };
 }
