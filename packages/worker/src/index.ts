@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 import { IMMUTABLE, jsonResponse, notModified, quoteEtag, SHORT_LIVED } from './cache.ts';
+import { dashboardResponse } from './dashboard.ts';
 import { type Env, LATEST_VERSION_KEY } from './env.ts';
 import { buildStatus, type RuleFreshness } from './status.ts';
 
@@ -33,6 +34,13 @@ export async function handle(request: Request, env: Env, now: Date = new Date())
   if (request.method !== 'GET') {
     return jsonResponse({ error: 'method_not_allowed' }, { status: 405, cacheControl: 'no-store' });
   }
+
+  // GET /dashboard —— human-readable，睇住而家出咗街嘅係咩。
+  //
+  // 擺喺 Worker 而唔係一個獨立頁：`/v1/*` 冇出 CORS header，所以第三方頁面
+  // （本機 HTML、artifact、另一個網域）一律讀唔到。同源出就唔使為咗睇一眼
+  // 而對全世界開 CORS。
+  if (path === '/dashboard') return dashboardResponse();
 
   // GET /v1/latest —— agent 每次開工第一個打嘅嘢。ETag = 版本號本身。
   if (path === '/v1/latest') {

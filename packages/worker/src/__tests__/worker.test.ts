@@ -146,3 +146,38 @@ describe('其他', () => {
     expect((await handle(get('/v1/latest/'), env(), NOW)).status).toBe(200);
   });
 });
+
+describe('GET /dashboard', () => {
+  it('出返一版 HTML，唔使有 snapshot 都出到', async () => {
+    // 個頁面係靜態嘅，資料係佢自己喺瀏覽器度 fetch。所以就算 KV 未有版本，
+    // 都應該出到個殼——「讀唔到」係頁面入面顯示，唔係一個 500。
+    const res = await handle(new Request('https://api.test/dashboard'), fakeEnv({}, null), NOW);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    expect(await res.text()).toContain('<!doctype html>');
+  });
+
+  it('唔好俾搜尋器收錄', async () => {
+    const res = await handle(new Request('https://api.test/dashboard'), env(), NOW);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('只 fetch 同源路徑——唔可以打 data.zavemate.com（嗰邊一樣冇 CORS）', async () => {
+    const html = await (await handle(new Request('https://api.test/dashboard'), env(), NOW)).text();
+
+    expect(html).toContain("fetch('/v1/status'");
+    expect(html).toContain("fetch('/v1/snapshot/'");
+    expect(html).not.toContain('data.zavemate.com');
+  });
+
+  it('尾斜線一樣行——path 正規化', async () => {
+    const res = await handle(new Request('https://api.test/dashboard/'), env(), NOW);
+    expect(res.status).toBe(200);
+  });
+
+  it('POST 照樣擋——同其他 route 一致', async () => {
+    const res = await handle(new Request('https://api.test/dashboard', { method: 'POST' }), env(), NOW);
+    expect(res.status).toBe(405);
+  });
+});
