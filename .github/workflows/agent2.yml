@@ -14,6 +14,7 @@ permissions:
   contents: write
   pull-requests: write
   statuses: write
+  actions: write # auto-merge 之後要 dispatch deploy.yml（見下面）
 
 concurrency:
   group: agent2
@@ -81,3 +82,25 @@ jobs:
         run: |
           gh pr merge "${{ steps.agent2.outputs.pr_url }}" --squash --delete-branch
           echo "零改動，已自動 merge：${{ steps.agent2.outputs.pr_url }}"
+
+      # ⚠️ Auto-merge 之後一定要自己叫 deploy。
+      #
+      # GITHUB_TOKEN 造成嘅 push **唔會**觸發其他 workflow（GitHub 防遞迴）。
+      # 呢個機制我哋已經中過一次——PR #90 嗰陣係 GITHUB_TOKEN 開嘅 PR 唔會
+      # 觸發 validate.yml，所以呢個 workflow 要自己 post commit status。
+      #
+      # 而家同一個機制喺最後一哩再咬一次：auto-merge 成功、資料入咗 main，
+      # 但 deploy.yml 冇跑，R2 同 API 停喺舊版本。實測 2026-08-29 run
+      # 33226784667——PR #170 由 app/github-actions merge 咗，main 去到
+      # 6f26da3，但 deploy 最後一次係 8d15903。
+      #
+      # 呢個係最惡劣嗰種靜靜錯：git 話今日核實過，API 服務緊兩日前嘅嘢，
+      # 兩邊各自睇都好正常。
+      #
+      # workflow_dispatch 同 repository_dispatch 係防遞迴機制嘅兩個例外，
+      # 所以 GITHUB_TOKEN 叫得郁——但要 `actions: write` 權限。
+      - name: Auto-merge 咗就即刻叫 deploy
+        if: steps.agent2.outputs.auto_mergeable == 'true' && steps.agent2.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
