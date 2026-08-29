@@ -41,6 +41,8 @@ async function filesFrom(options: {
    * 但舊 evidence 撐唔住個數值（2026-08-27 真跑捉到嗰六條就係噉）。
    */
   outcome?: 'extracted' | 'unchanged';
+  /** 卡頁 HTML——俾來源漂移檢查用。唔提供就當讀唔到（跳過檢查）。 */
+  pageHtml?: string;
 }): Promise<CapturedFile[]> {
   let captured: CapturedFile[] = [];
   await runAgent1({
@@ -48,6 +50,10 @@ async function filesFrom(options: {
     githubToken: 'fake',
     now: NOW,
     cards: options.cards,
+    fetchFn: async (url: string) => {
+      if (options.pageHtml === undefined) throw new Error('冇卡頁');
+      return { content: options.pageHtml, status: 200, fetchedAt: NOW.toISOString() };
+    },
     runPipelineFn: async (input) => {
       if (options.outcome === 'unchanged') {
         return {
@@ -208,5 +214,58 @@ describe('出關驗證：寫落 PR 嘅嘢一定要過 schema', () => {
     });
     expectEveryFileValid(files);
     expect(files.some((f) => f.path.startsWith('data/questions/')), '驗唔到就應該問人').toBe(true);
+  });
+});
+
+describe('來源漂移 → question', () => {
+  const PAGE = 'https://www.example-bank.com.hk/cards/demo-page';
+  const CITED = 'https://av.example-bank.com.hk/docs/demo-2020.pdf';
+  const LINKED = 'https://av.example-bank.com.hk/docs/demo-2026.pdf';
+
+  function cardWithProductPage() {
+    const base = card();
+    return {
+      ...base,
+      sources: [
+        { url: CITED, purpose: 'scheme', note: null, last_modified: null, etag: null, language: null, is_authoritative: true },
+        { url: PAGE, purpose: 'product_page', note: null, last_modified: null, etag: null, language: null, is_authoritative: true },
+      ],
+      provenance: { ...base.provenance, source_url: CITED },
+      rewards: [rewardRule({ provenance: provenance({ source_url: CITED }) })],
+    } as ReturnType<typeof card>;
+  }
+
+  it('卡頁唔再 link 我哋引用嗰份 → 開 source_superseded question', async () => {
+    // 真實個案：sc_simply_cash_visa 引用緊 06/2020，官方 link 緊 04/2026。
+    // 所有其他檢查都綠燈——舊文件真係有嗰句，而且真係冇改過。
+    const files = await filesFrom({
+      cards: [cardWithProductPage()],
+      provider: extractionProvider(0.04),
+      pageHtml: '<a href="' + LINKED + '">最新條款</a>',
+    });
+    expectEveryFileValid(files);
+
+    const q = files.find((f) => f.path.startsWith('data/questions/'));
+    expect(q, '應該開 question').toBeDefined();
+
+    const parsed = Question.parse(JSON.parse(q!.content));
+    expect(parsed.kind).toBe('source_superseded');
+    expect(parsed.rule_id).toBeNull();
+    expect(parsed.evidence).toContain(LINKED);
+  });
+
+  it('卡頁仲 link 緊我哋引用嗰份 → 唔開 question', async () => {
+    const files = await filesFrom({
+      cards: [cardWithProductPage()],
+      provider: extractionProvider(0.04),
+      pageHtml: '<a href="' + CITED + '?intcid=tracking">條款</a>',
+    });
+    expect(files.some((f) => f.path.startsWith('data/questions/'))).toBe(false);
+  });
+
+  it('讀唔到卡頁 → 靜靜跳過，唔好因為佢而搞衰成個 run', async () => {
+    const files = await filesFrom({ cards: [cardWithProductPage()], provider: extractionProvider(0.04) });
+    expect(files.some((f) => f.path.startsWith('data/questions/'))).toBe(false);
+    expect(files.some((f) => f.path === 'data/cards/demo_card.json')).toBe(true);
   });
 });

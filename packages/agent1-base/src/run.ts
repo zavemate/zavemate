@@ -1,7 +1,8 @@
-import { buildPRBody, evaluateGate, type GateResult, openPR, type PRFile } from '@zavemate/core';
-import { canonicalStringify, type Card, type JsonValue } from '@zavemate/schema';
+import { buildPRBody, evaluateGate, fetchSource, type GateResult, openPR, type PRFile } from '@zavemate/core';
+import { canonicalStringify, type Card, type JsonValue, questionId } from '@zavemate/schema';
 import { applyWork, type EvidenceGap } from './apply.ts';
 import { runRepairPass } from './repair-pass.ts';
+import { extractLinkedDocs, findSourceDrift, productPageOf } from './source-drift.ts';
 import type { LLMProvider } from './llm.ts';
 import { runPipeline } from './pipeline.ts';
 import { loadActiveCards, selectWork } from './scan.ts';
@@ -30,6 +31,13 @@ export interface Agent1RunOptions {
    * 判做「抽取太薄」。pipeline 本身有自己嘅 integration test 覆蓋。
    */
   runPipelineFn?: typeof runPipeline;
+  /**
+   * 淨係測試用——來源漂移檢查會真係 fetch 發卡行嘅卡頁。
+   *
+   * 冇呢個注入點，任何一個 fixture 一旦加咗 product_page，成批 unit test
+   * 就會靜靜哋開始打真網站。同 runPipelineFn 一樣嘅理由。
+   */
+  fetchFn?: typeof fetchSource;
 }
 
 export interface Agent1RunResult {
@@ -166,6 +174,48 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   for (const [cardId, card] of repair.touchedCards) mergedCards.set(cardId, card);
   allNotes.push(...repair.notes);
   allAttention.push(...repair.attentionNeeded);
+
+  // ── 來源漂移檢查 ────────────────────────────────────────────────
+  //
+  // 問一條所有其他檢查都冇問過嘅嘢：**我哋引用嗰份文件，發卡行自己仲有冇 link？**
+  //
+  // evidence 逐字驗得過、hash 短路命中、source_moved gate 唔響（host 一樣）、
+  // last_verified_at 照更新——但份文件可以係 2020 年嘅版本，而銀行 2026 年
+  // 已經換咗第二份。實測 sc_simply_cash_visa 就係噉，差 5 年 9 個月。
+  //
+  // 一張卡一個額外 fetch，而且只揀有 product_page 嘅卡。讀唔到就靜靜跳過——
+  // 呢個係補充檢查，唔應該因為佢而令成個 run 嘅結果變差。
+  for (const card of workingCards.values()) {
+    const pageUrl = productPageOf(card);
+    if (pageUrl === null) continue;
+
+    let html: string;
+    try {
+      html = (await (options.fetchFn ?? fetchSource)(pageUrl, 'html')).content;
+    } catch {
+      continue;
+    }
+
+    for (const drift of findSourceDrift({ card, productPageUrl: pageUrl, linkedDocs: extractLinkedDocs(html, pageUrl) })) {
+      const id = questionId(`${drift.cardId}_${drift.purpose}`, 'source_superseded');
+      if (questions.has(id)) continue;
+      questions.set(id, {
+        question_id: id,
+        card_id: drift.cardId,
+        rule_id: null,
+        kind: 'source_superseded',
+        status: 'open',
+        question: `我哋引用緊 ${drift.citedUrl}（purpose: ${drift.purpose}），但 ${drift.productPageUrl} 已經冇 link 佢。應該換邊份？`,
+        evidence: `卡頁而家 link 緊：\n${drift.linkedDocs.join('\n')}`,
+        source_url: drift.productPageUrl,
+        raised_at: nowIso,
+        raised_by: 'agent1_source_drift',
+        answer: null,
+        answered_at: null,
+      });
+      allAttention.push(`${drift.cardId}：引用緊嘅 ${drift.purpose} 文件，發卡行卡頁已經冇 link——已開 question \`${id}\``);
+    }
+  }
 
   const gateResults = new Map<string, GateResult>();
   for (const [cardId, newCard] of mergedCards) {
