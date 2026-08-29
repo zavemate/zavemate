@@ -7,3 +7,4 @@ export * from './apply.ts';
 export * from './run.ts';
 export * from './repair.ts';
 export * from './repair-pass.ts';
+export * from './source-drift.ts';

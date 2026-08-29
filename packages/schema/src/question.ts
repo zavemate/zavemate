@@ -29,6 +29,22 @@ export const QuestionKind = z.enum([
   'source_unreadable',
   /** 搵唔到任何撐得住呢個數值嘅原文。 */
   'evidence_absent',
+  /**
+   * 我哋引用緊嘅文件，發卡行自己已經唔再 link。
+   *
+   * 2026-08-29 撞到：`sc_simply_cash_visa` 引用緊一份 **2020 年 6 月**嘅
+   * T&C，而渣打自己個卡頁 link 緊 2026 年 4 月嗰份（檔名多咗 `-noc`）。
+   * 三張 Cathay 卡亦都共用咗 `t0`，但官方同時 link `t1`／`t2`，各自對應
+   * Priority Banking／Priority Private。
+   *
+   * 呢類問題所有現有檢查都捉唔到：evidence 逐字驗得過（舊文件真係有嗰句）、
+   * hash 短路命中（舊文件真係冇改過）、`source_moved` gate 唔會響（host 一樣）。
+   * 每個燈都綠，因為佢哋全部只問「呢句嘢喺唔喺呢份文件」——**冇一個問過
+   * 「呢份文件仲係咪嗰份文件」**。
+   *
+   * 跟進方法同其他 kind 唔同：唔係改數值，係換 `source_url` 再重新核實。
+   */
+  'source_superseded',
 ]);
 export type QuestionKind = z.infer<typeof QuestionKind>;
 
