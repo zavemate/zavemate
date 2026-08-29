@@ -254,6 +254,27 @@ describe('來源漂移 → question', () => {
     expect(parsed.evidence).toContain(LINKED);
   });
 
+  it('卡頁 link 住十幾份文件 → question 一樣要過到 schema', async () => {
+    // 我原本個 fixture 只有 1 份 linked doc，所以 evidence 永遠好短，
+    // 掂唔到 Question.evidence 個 max(500)。真跑撞到 EveryMile 卡頁有 13 份
+    // 滙豐 PDF（每條 URL ~100 字），成個 agent run 嘅 validate 紅晒。
+    //
+    // 出關驗證要用真實體積嘅資料先守得住——shape 啱唔代表 size 啱。
+    const many = Array.from(
+      { length: 13 },
+      (_, i) => `https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-doc-${i}.pdf`,
+    );
+    const files = await filesFrom({
+      cards: [cardWithProductPage()],
+      provider: extractionProvider(0.04),
+      pageHtml: many.map((u) => `<a href="${u}">x</a>`).join(''),
+    });
+
+    expectEveryFileValid(files);
+    const q = files.find((f) => f.path.startsWith('data/questions/'));
+    expect(Question.parse(JSON.parse(q!.content)).evidence!.length).toBeLessThanOrEqual(500);
+  });
+
   it('卡頁仲 link 緊我哋引用嗰份 → 唔開 question', async () => {
     const files = await filesFrom({
       cards: [cardWithProductPage()],

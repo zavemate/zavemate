@@ -2,7 +2,7 @@ import { buildPRBody, evaluateGate, fetchSource, type GateResult, openPR, type P
 import { canonicalStringify, type Card, type JsonValue, questionId } from '@zavemate/schema';
 import { applyWork, type EvidenceGap } from './apply.ts';
 import { runRepairPass } from './repair-pass.ts';
-import { extractLinkedDocs, findSourceDrift, productPageOf } from './source-drift.ts';
+import { extractLinkedDocs, findSourceDrift, productPageOf, summariseLinkedDocs } from './source-drift.ts';
 import type { LLMProvider } from './llm.ts';
 import { runPipeline } from './pipeline.ts';
 import { loadActiveCards, selectWork } from './scan.ts';
@@ -206,7 +206,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
         kind: 'source_superseded',
         status: 'open',
         question: `我哋引用緊 ${drift.citedUrl}（purpose: ${drift.purpose}），但 ${drift.productPageUrl} 已經冇 link 佢。應該換邊份？`,
-        evidence: `卡頁而家 link 緊：\n${drift.linkedDocs.join('\n')}`,
+        evidence: summariseLinkedDocs(drift.linkedDocs),
         source_url: drift.productPageUrl,
         raised_at: nowIso,
         raised_by: 'agent1_source_drift',

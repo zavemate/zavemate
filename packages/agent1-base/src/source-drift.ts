@@ -98,3 +98,38 @@ export function findSourceDrift(input: DriftInput): SourceDrift[] {
 export function productPageOf(card: Card): string | null {
   return card.sources.find((source) => source.purpose === 'product_page')?.url ?? null;
 }
+
+/** `Question.evidence` 個上限。 */
+const EVIDENCE_MAX = 500;
+
+/**
+ * 將「卡頁而家 link 緊邊幾份」砌成一段唔超過 500 字嘅 evidence。
+ *
+ * 實測 EveryMile 卡頁 link 住 13 份 PDF，滙豐啲 URL 每條約 100 字——夾埋
+ * 1,300 字，直接爆 `Question.evidence` 個 max(500)，成個 agent run 嘅
+ * validate 會紅（真係發生過：run 33251522019）。
+ *
+ * 兩級退讓：先試完整 URL（最有用，撳得），太長就淨係出檔名（睇得出邊份係
+ * 邊份），再長就截斷同時講明剩返幾多份。**寧願講「仲有 N 份」都好過靜靜哋
+ * 少列幾份**——人睇嗰陣要知自己係咪睇齊。
+ */
+export function summariseLinkedDocs(linkedDocs: string[]): string {
+  const head = '卡頁而家 link 緊：\n';
+
+  const full = head + linkedDocs.join('\n');
+  if (full.length <= EVIDENCE_MAX) return full;
+
+  const names = linkedDocs.map((u) => u.split('/').pop() ?? u);
+  const byName = head + names.join('\n');
+  if (byName.length <= EVIDENCE_MAX) return byName;
+
+  const kept: string[] = [];
+  let length = head.length;
+  for (const name of names) {
+    // 預留位俾最後嗰句「…仲有 N 份」。
+    if (length + name.length + 1 > EVIDENCE_MAX - 40) break;
+    kept.push(name);
+    length += name.length + 1;
+  }
+  return `${head}${kept.join('\n')}\n…仲有 ${linkedDocs.length - kept.length} 份，見卡頁`;
+}
