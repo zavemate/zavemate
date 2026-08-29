@@ -1,7 +1,7 @@
-import { evaluateGate, type GateResult, openPR, type PRFile } from '@zavemate/core';
-import { canonicalStringify, type Card, type JsonValue, type Question, questionId } from '@zavemate/schema';
+import { buildPRBody, evaluateGate, type GateResult, openPR, type PRFile } from '@zavemate/core';
+import { canonicalStringify, type Card, type JsonValue } from '@zavemate/schema';
 import { applyWork, type EvidenceGap } from './apply.ts';
-import { proposeEvidence } from './repair.ts';
+import { runRepairPass } from './repair-pass.ts';
 import type { LLMProvider } from './llm.ts';
 import { runPipeline } from './pipeline.ts';
 import { loadActiveCards, selectWork } from './scan.ts';
@@ -155,70 +155,17 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   // 呢個係成個 loop 收唔收斂嘅關鍵。冇修復 pass，每次 evidence 對唔上都要人手
   // 去搵返句原文；而實測六條入面五條都係「引文寫錯但數值啱」——嗰啲人做同機器
   // 做完全一樣。
-  const questions = new Map<string, Question>();
-  let repaired = 0;
-
-  for (const gap of allGaps) {
-    const card = workingCards.get(gap.cardId);
-    const rule = card?.rewards.find((r) => r.rule_id === gap.ruleId);
-    if (!card || !rule) continue;
-
-    let result;
-    try {
-      result = await proposeEvidence({
-        ruleId: gap.ruleId,
-        label: rule.label,
-        valueDescription: JSON.stringify(rule.reward),
-        currentEvidence: rule.provenance.evidence_excerpt,
-        sourceText: gap.sourceText,
-        provider: options.provider,
-      });
-    } catch {
-      result = null;
-    }
-    if (result) totalCostUsd += result.usage.costUsd;
-
-    if (result && result.proposal.verdict === 'supported' && result.excerptVerified) {
-      const before = rule.provenance.evidence_excerpt;
-      rule.provenance.evidence_excerpt = result.proposal.excerpt;
-      rule.provenance.last_verified_at = nowIso;
-      rule.provenance.confidence = 'official';
-      mergedCards.set(gap.cardId, card);
-      repaired += 1;
-      allNotes.push(
-        `🔧 ${gap.cardId}/${gap.ruleId}：evidence 修好咗（機器逐字驗證過），數值一個字都冇郁\n    舊：${(before ?? '').slice(0, 90)}\n    新：${(result.proposal.excerpt ?? '').slice(0, 90)}`,
-      );
-      continue;
-    }
-
-    // 修唔掂 → 開一條 question。kind 決定跟進方法，所以要分清楚。
-    const kind =
-      result === null ? 'evidence_absent'
-      : result.proposal.verdict === 'unsupported' && result.excerptVerified ? 'value_conflict'
-      : 'evidence_absent';
-    const id = questionId(gap.ruleId, kind);
-    questions.set(id, {
-      question_id: id,
-      card_id: gap.cardId,
-      rule_id: gap.ruleId,
-      kind,
-      status: 'open',
-      question:
-        kind === 'value_conflict'
-          ? `我哋記錄 ${JSON.stringify(rule.reward)}，但原文講緊另一件事。邊個啱？`
-          : `搵唔到任何撐得住 ${JSON.stringify(rule.reward)} 嘅原文。個數值係咪錯？定係呢份文件根本唔係啱嘅出處？`,
-      evidence: result?.proposal.contradicting_excerpt ?? result?.proposal.reasoning ?? null,
-      source_url: gap.sourceUrl,
-      raised_at: nowIso,
-      raised_by: 'agent1_repair',
-      answer: null,
-      answered_at: null,
-    });
-    // 有 open question 就唔可以係 official（validate 會強制），所以順手降。
-    rule.provenance.confidence = 'unconfirmed';
-    mergedCards.set(gap.cardId, card);
-    allAttention.push(`${gap.cardId}/${gap.ruleId}：修復 agent 搞唔掂，已開 question \`${id}\` 等你答`);
-  }
+  const repair = await runRepairPass({
+    gaps: allGaps,
+    workingCards,
+    provider: options.provider,
+    nowIso,
+  });
+  const { questions, repaired } = repair;
+  totalCostUsd += repair.totalCostUsd;
+  for (const [cardId, card] of repair.touchedCards) mergedCards.set(cardId, card);
+  allNotes.push(...repair.notes);
+  allAttention.push(...repair.attentionNeeded);
 
   const gateResults = new Map<string, GateResult>();
   for (const [cardId, newCard] of mergedCards) {
@@ -238,26 +185,26 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
   ];
 
   const dateStr = hongKongDate(now);
-  const bodyParts = [`**自動核實 —— ${dateStr}**`, '', '### 改動', ...allNotes.map((n) => `- ${n}`)];
-  if (questions.size > 0) {
-    bodyParts.push(
-      '',
-      '### ❓ 要你答嘅問題',
-      '修復 agent 搞唔掂嘅先會開 question。答案要寫返落 `data/questions/`——答過一次就唔會再問。',
-      ...[...questions.values()].map((q) => `- \`${q.question_id}\`（${q.kind}）：${q.question}`),
-    );
-  }
-  if (allAttention.length > 0) {
-    bodyParts.push('', '### ⚠️ 需要人手覆核', ...allAttention.map((n) => `- ${n}`));
-  }
-  bodyParts.push(
-    '',
-    '### Gate 結果',
-    ...[...gateResults.entries()].map(
-      ([cardId, gate]) => `- ${cardId}：${gate.passed ? '✅ 全過' : `⛔ ${gate.reasons.join('、')}`}`,
-    ),
-  );
-  bodyParts.push('', '### 成本', `- 總 LLM cost：$${totalCostUsd.toFixed(4)}`);
+  const body = buildPRBody({
+    title: '自動核實',
+    date: dateStr,
+    totalCostUsd,
+    sections: [
+      { heading: '改動', items: allNotes },
+      {
+        heading: '❓ 要你答嘅問題',
+        intro: '修復 agent 搞唔掂嘅先會開 question。答案要寫返落 `data/questions/`——答過一次就唔會再問。',
+        items: [...questions.values()].map((q) => `\`${q.question_id}\`（${q.kind}）：${q.question}`),
+      },
+      { heading: '⚠️ 需要人手覆核', items: allAttention },
+      {
+        heading: 'Gate 結果',
+        items: [...gateResults.entries()].map(
+          ([cardId, gate]) => `${cardId}：${gate.passed ? '✅ 全過' : `⛔ ${gate.reasons.join('、')}`}`,
+        ),
+      },
+    ],
+  });
 
   // attentionNeeded 一樣要標 needs-review：gate 全過唔代表唔使人手睇——
   // 「頁面搵唔到呢條 rule」「疑似排期生效」呢啲數值根本冇郁，gate 冇嘢可以
@@ -274,7 +221,7 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
     branchName: `agent1/${dateStr}`,
     files,
     title: `chore(agent1): weekly check — ${changed} changed, ${verified} verified`,
-    body: bodyParts.join('\n'),
+    body,
     labels,
   });
 
