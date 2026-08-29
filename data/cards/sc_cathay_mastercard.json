@@ -74,6 +74,15 @@
       "note": null,
       "purpose": "scheme",
       "url": "https://av.sc.com/hk/content/docs/hk-cx-t0-tnc.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": true,
+      "language": "zh",
+      "last_modified": null,
+      "note": "發卡行自己嘅卡頁——用嚟核對佢而家 link 緊邊幾份條款",
+      "purpose": "product_page",
+      "url": "https://www.sc.com/hk/zh/credit-cards/cathay/"
     }
   ]
 }
