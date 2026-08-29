@@ -46,12 +46,12 @@
         "scope": "criteria"
       },
       "provenance": {
-        "check_fail_count": 1,
+        "check_fail_count": 0,
         "confidence": "official",
         "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
         "evidence_excerpt": "1.5% Eligible Transactions posted in Hong Kong Dollars",
-        "last_checked_at": "2026-08-27T11:13:52.839Z",
-        "last_verified_at": "2026-08-24T12:05:28.311Z",
+        "last_checked_at": "2026-08-29T01:35:09.826Z",
+        "last_verified_at": "2026-08-29T01:35:09.826Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
       },
       "registration_url": null,
@@ -83,12 +83,12 @@
         "scope": "criteria"
       },
       "provenance": {
-        "check_fail_count": 1,
+        "check_fail_count": 0,
         "confidence": "official",
         "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
         "evidence_excerpt": "2% Eligible Transactions posted in a currency other than Hong Kong Dollars",
-        "last_checked_at": "2026-08-27T11:13:52.839Z",
-        "last_verified_at": "2026-08-24T12:05:28.311Z",
+        "last_checked_at": "2026-08-29T01:35:09.826Z",
+        "last_verified_at": "2026-08-29T01:35:09.826Z",
         "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
       },
       "registration_url": null,
