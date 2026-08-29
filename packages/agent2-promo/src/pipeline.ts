@@ -19,6 +19,21 @@ export interface PromoLLMProvider {
   }>;
 }
 
+/**
+ * 一次抽取：餵咗咩落 LLM，同埋佢交返咩。
+ *
+ * 要孭住 `sourceText` 係因為 apply 嗰邊要驗發卡行——`evidence_excerpt` 係
+ * LLM 自己揀嗰一兩句，成日啱好冇提發卡行（實測「SC Pay 每月免手續費套現」
+ * 就係噉被誤擋）。整篇原文先係完整嘅 haystack。
+ *
+ * 一定要**逐篇**孭，唔可以成個 feed 夾埋一嚿：feed 入面有滙豐嘅文，夾埋之後
+ * 任何一條 promotion 都搵到「滙豐」，個 guard 就等於冇。
+ */
+export interface ExtractionBatch {
+  sourceText: string;
+  promotions: PromoExtractionResult['promotions'];
+}
+
 export type PromoPipelineOutcome =
   | { kind: 'fetch_failed'; error: FetchError }
   | { kind: 'extraction_too_thin'; reason: string }
@@ -26,7 +41,8 @@ export type PromoPipelineOutcome =
   | {
       kind: 'extracted';
       contentHash: string;
-      result: PromoExtractionResult;
+      /** 逐篇分開——每個 batch 記住自己嗰篇原文。 */
+      batches: ExtractionBatch[];
       usage: Array<{ tokensIn: number; tokensOut: number; costUsd: number; model: string }>;
       /**
        * Feed 專用：剪剩 feed 而家仲有嗰批 guid 嘅 hash map，直接寫返落
@@ -90,7 +106,12 @@ export async function runPromoPipeline(input: PromoPipelineInput): Promise<Promo
     throw new Error(`LLM 回覆唔符合 schema：${parsed.error.message}`);
   }
 
-  return { kind: 'extracted', contentHash, result: parsed.data, usage: [llm.usage] };
+  return {
+    kind: 'extracted',
+    contentHash,
+    batches: [{ sourceText: content, promotions: parsed.data.promotions }],
+    usage: [llm.usage],
+  };
 }
 
 /**
@@ -123,7 +144,7 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
   const itemHashes: Record<string, string> = {};
   const itemNotes: string[] = [];
   let walkComplete = true;
-  const promotions: PromoExtractionResult['promotions'] = [];
+  const batches: ExtractionBatch[] = [];
   const usage: Array<{ tokensIn: number; tokensOut: number; costUsd: number; model: string }> = [];
 
   for (let page = 1; page <= input.source.feed_max_pages; page += 1) {
@@ -164,7 +185,7 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
       }
 
       usage.push(llm.usage);
-      promotions.push(...parsed.data.promotions);
+      batches.push({ sourceText: text, promotions: parsed.data.promotions });
       // 抽取成功先寫 hash。中途 throw 嘅話成個 run 都冇 PR，下次由頭嚟過。
       itemHashes[item.guid] = hash;
       itemNotes.push(`📄 ${item.title}：抽到 ${parsed.data.promotions.length} 個優惠`);
@@ -190,7 +211,7 @@ async function runFeedPipeline(input: PromoPipelineInput, firstPageXml: string):
   return {
     kind: 'extracted',
     contentHash: sha256(firstPageText),
-    result: { promotions },
+    batches,
     usage,
     itemHashes: walkComplete ? itemHashes : undefined,
     itemNotes,

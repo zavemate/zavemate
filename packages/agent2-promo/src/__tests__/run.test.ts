@@ -94,7 +94,7 @@ async function run(opts: {
 const extractedOutcome = (promos: ExtractedPromotion[]): PromoPipelineOutcome => ({
   kind: 'extracted',
   contentHash: 'a'.repeat(64),
-  result: { promotions: promos },
+  batches: [{ sourceText: '憑滙豐信用卡簽賬', promotions: promos }],
   usage: [{ tokensIn: 10, tokensOut: 5, costUsd: 0.002, model: 'stub' }],
 });
 

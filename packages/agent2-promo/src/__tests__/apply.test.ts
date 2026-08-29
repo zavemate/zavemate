@@ -33,9 +33,21 @@ function extracted(overrides: Partial<ExtractedPromotion> = {}): ExtractedPromot
   };
 }
 
-function input(overrides: Partial<ApplyPromoInput> = {}): ApplyPromoInput {
+/**
+ * `extracted` / `sourceText` 係 test 用嘅方便寫法——包成一個 batch 交落去。
+ *
+ * 大部分 test 唔關「整篇原文」事，所以 sourceText 預設留空；淨係驗發卡行
+ * 嗰幾個先會特登俾。
+ */
+type InputOverrides = Omit<Partial<ApplyPromoInput>, 'batches'> & {
+  extracted?: ExtractedPromotion[];
+  sourceText?: string;
+  batches?: ApplyPromoInput['batches'];
+};
+
+function input({ extracted: promos, sourceText, batches, ...overrides }: InputOverrides = {}): ApplyPromoInput {
   return {
-    extracted: [extracted()],
+    batches: batches ?? [{ sourceText: sourceText ?? '', promotions: promos ?? [extracted()] }],
     existing: new Map<string, Promotion>(),
     existingForPrompt: [],
     cards: [{ card_id: 'hsbc_red', issuer: 'HSBC', issuer_aliases: ['滙豐'], card_aliases: ['Red 卡', '紅卡'] }],
@@ -208,6 +220,41 @@ describe('發卡行要對得上（機器驗證）', () => {
             evidence_excerpt: '推廣期由2026年8月6日至9月30日，一經登記，憑恒生信用卡去宜家家居分店簽賬可享額外回贈',
           }),
         ],
+      }),
+    );
+    expect(result.updated.size).toBe(0);
+    expect(result.attentionNeeded.join('\n')).toContain('一次都冇提過 HSBC');
+  });
+
+  it('evidence 冇提發卡行，但整篇原文有 → 照收', () => {
+    // 真實誤報：「SC Pay 每月免手續費FPS套現$40,000」被擋走，因為 LLM 揀嗰段
+    // evidence 啱好冇「渣打」兩隻字——但篇文標題同正文由頭到尾講緊渣打。
+    const result = applyExtractedPromotions(
+      input({
+        cards: [
+          { card_id: 'sc_smart', issuer: 'Standard Chartered', issuer_aliases: ['渣打'], card_aliases: ['Smart 卡'] },
+        ],
+        extracted: [
+          extracted({
+            card_id: 'sc_smart',
+            title: 'SC Pay 每月免手續費轉賬',
+            evidence_excerpt: '每個月可以免費用SC Pay套現$40,000，其後轉賬金額會收取3.5%手續費。',
+          }),
+        ],
+        sourceText: '渣打信用卡SC Pay教學：每月免手續費FPS套現$40,000\n\nSC Pay，其實即係渣打嘅FPS轉數快功能…',
+      }),
+    );
+    expect(result.updated.size).toBe(1);
+  });
+
+  it('整篇原文都冇提過發卡行 → 照樣擋', () => {
+    // 放寬 haystack 唔可以令個 guard 失效。恒生嗰批就係靠呢度擋住。
+    const result = applyExtractedPromotions(
+      input({
+        extracted: [
+          extracted({ title: '恒生信用卡IKEA額外回贈', evidence_excerpt: '憑恒生信用卡去宜家家居分店簽賬可享額外回贈' }),
+        ],
+        sourceText: '恒生信用卡IKEA優惠：高達額外$1,000回贈！\n\n今期恒生出咗個IKEA優惠，憑恒生信用卡去宜家家居…',
       }),
     );
     expect(result.updated.size).toBe(0);

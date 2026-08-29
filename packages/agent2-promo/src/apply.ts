@@ -1,6 +1,7 @@
 import type { MatchCriteria, Promotion, PromotionReward } from '@zavemate/schema';
 import { findSuspectedDuplicates, type SuspectedDuplicate } from './dedupe.ts';
 import type { ExistingPromotion, ExtractedPromotion } from './extraction.ts';
+import type { ExtractionBatch } from './pipeline.ts';
 import { normalizeSlug, promotionId } from './id.ts';
 import { daysBetween, EXPIRY_GRACE_DAYS } from './expire.ts';
 
@@ -72,7 +73,8 @@ function toMatch(extracted: ExtractedPromotion): MatchCriteria {
 }
 
 export interface ApplyPromoInput {
-  extracted: ExtractedPromotion[];
+  /** 逐篇分開——每個 batch 帶住自己嗰篇原文，發卡行驗證要用。 */
+  batches: ExtractionBatch[];
   /** 現有優惠，key = promotion_id。 */
   existing: Map<string, Promotion>;
   /** 餵過俾 LLM 睇嗰批（同卡同季度），用嚟做去重兜底。 */
@@ -94,20 +96,29 @@ export interface ApplyPromoInput {
  * 中文名又似，LLM 當咗同一間——而佢**同一次抽取交返嘅 evidence_excerpt 白紙
  * 黑字寫住「憑恒生信用卡」**。即係證據本身已經推翻咗個 card_id。
  *
- * 所以呢度唔問 LLB「你肯唔肯定」，直接攞佢自己交嘅原文嚟對：issuer 或者其中
- * 一個 alias 要喺 title／evidence 出現過。同 Agent 1 嘅 evidenceSupportedBy
- * 一樣嘅道理——LLM 可以提議，但唔可以自己認證自己。
+ * 所以呢度唔問 LLM「你肯唔肯定」，直接攞原文嚟對：issuer 或者其中一個 alias
+ * 要喺 **title + evidence + 整篇原文** 入面出現過。同 Agent 1 嘅
+ * evidenceSupportedBy 一樣嘅道理——LLM 可以提議，但唔可以自己認證自己。
+ *
+ * 一開始淨係搜 title + evidence，結果誤擋咗「SC Pay 每月免手續費套現」——
+ * 篇文由頭到尾講渣打，但 LLM 揀嗰一兩句 evidence 啱好冇出現「渣打」兩隻字。
+ * 搜埋整篇原文就冇呢個問題。
+ *
+ * ⚠️ 一定要**逐篇**搜，唔可以成個 feed 夾埋：feed 入面有滙豐嘅文，夾埋之後
+ * 任何一條 promotion 都搵到「滙豐」，個 guard 就等於冇。
+ *
+ * 實測過會唔會反而放鬆咗：2026-08-29 抽 24 篇逐篇對，**零洩漏**——每一篇唔關
+ * 滙豐／渣打事嘅文，成篇原文都完全冇提過呢兩間，標題同全文完全一致。
  *
  * 漏報（一篇真係滙豐嘅文冇寫「滙豐」兩隻字）嘅代價係少收一個優惠，而且會出
  * attention note 睇得到；誤收一間錯嘅銀行嘅優惠係對外講錯數。兩者唔對稱。
  */
 function issuerMentioned(
-  title: string,
-  evidence: string | null,
+  haystack: string,
   card: { issuer: string; issuer_aliases: string[] },
 ): boolean {
-  const haystack = `${title}\n${evidence ?? ''}`.toLowerCase();
-  return [card.issuer, ...card.issuer_aliases].some((name) => haystack.includes(name.toLowerCase()));
+  const lower = haystack.toLowerCase();
+  return [card.issuer, ...card.issuer_aliases].some((name) => lower.includes(name.toLowerCase()));
 }
 
 
@@ -156,7 +167,8 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
   const attentionNeeded: string[] = [];
   const newByCard = new Map<string, string[]>();
 
-  for (const promo of input.extracted) {
+  for (const { sourceText, promotions } of input.batches)
+    for (const promo of promotions) {
     // §6.5：似係長期條款就唔好自己處理，交返俾人手加落 Agent 1 範圍。
     if (promo.looks_like_base_terms) {
       attentionNeeded.push(
@@ -206,7 +218,7 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
       attentionNeeded.push(`「${promo.title}」嘅 card_id "${promo.card_id}" 唔喺呢個來源嘅卡清單入面——冇寫入`);
       continue;
     }
-    if (!issuerMentioned(promo.title, promo.evidence_excerpt, card)) {
+    if (!issuerMentioned(`${promo.title}\n${promo.evidence_excerpt ?? ''}\n${sourceText}`, card)) {
       attentionNeeded.push(
         `「${promo.title}」掛咗落 ${promo.card_id}，但原文一次都冇提過 ${card.issuer}——冇寫入。多數係撈亂咗發卡行（恒生 ≠ 滙豐）`,
       );
@@ -320,6 +332,9 @@ export function applyExtractedPromotions(input: ApplyPromoInput): ApplyPromoResu
     updated,
     notes,
     attentionNeeded,
-    suspectedDuplicates: findSuspectedDuplicates(input.extracted, input.existingForPrompt),
+    suspectedDuplicates: findSuspectedDuplicates(
+      input.batches.flatMap((b) => b.promotions),
+      input.existingForPrompt,
+    ),
   };
 }
