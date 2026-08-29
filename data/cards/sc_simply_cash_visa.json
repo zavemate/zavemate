@@ -21,11 +21,11 @@
   "provenance": {
     "check_fail_count": 0,
     "confidence": "official",
-    "content_hash": "913dfcf9f3cf4e037192c49348a1a134d4426c717463774ae72444e15bdd269b",
+    "content_hash": null,
     "evidence_excerpt": "Cardholders will enjoy an annual fee waiver on their Cards for a year ... if they are Priority Banking clients or Premium Banking clients meeting the relevant Minimum Relationship Balance requirement, or payroll account clients.",
     "last_checked_at": "2026-08-20T13:30:00.000Z",
     "last_verified_at": "2026-08-20T13:30:00.000Z",
-    "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+    "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc-noc.pdf"
   },
   "rewards": [
     {
@@ -48,11 +48,11 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
+        "content_hash": null,
         "evidence_excerpt": "1.5% Eligible Transactions posted in Hong Kong Dollars",
         "last_checked_at": "2026-08-29T04:39:18.217Z",
         "last_verified_at": "2026-08-29T04:39:18.217Z",
-        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc-noc.pdf"
       },
       "registration_url": null,
       "requires_registration": false,
@@ -85,11 +85,11 @@
       "provenance": {
         "check_fail_count": 0,
         "confidence": "official",
-        "content_hash": "19e28257d20ec550c9e6c96726671e3f994389ff8d058ce7ce9bf12e002c63a6",
+        "content_hash": null,
         "evidence_excerpt": "2% Eligible Transactions posted in a currency other than Hong Kong Dollars",
         "last_checked_at": "2026-08-29T04:39:18.217Z",
         "last_verified_at": "2026-08-29T04:39:18.217Z",
-        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+        "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc-noc.pdf"
       },
       "registration_url": null,
       "requires_registration": false,
@@ -111,7 +111,16 @@
       "last_modified": null,
       "note": null,
       "purpose": "scheme",
-      "url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc.pdf"
+      "url": "https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc-noc.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": true,
+      "language": "zh",
+      "last_modified": null,
+      "note": "發卡行自己嘅卡頁——用嚟核對佢而家 link 緊邊幾份條款",
+      "purpose": "product_page",
+      "url": "https://www.sc.com/hk/zh/credit-cards/simplycash/"
     }
   ]
 }
