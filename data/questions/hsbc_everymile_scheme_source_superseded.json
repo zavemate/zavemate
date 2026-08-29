@@ -1,0 +1,14 @@
+{
+  "answer": null,
+  "answered_at": null,
+  "card_id": "hsbc_everymile",
+  "evidence": "卡頁而家 link 緊：\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/everymile-paywithrc-spend.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/everymile-plaza-premium.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/everymile/important-information.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/interest-free-instalment.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/key-fact-statement.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/agoda-terms-and-conditions.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-everyday-spend.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-insurance-policy-factsheet.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-paywithrc-benefits.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits-complimentary.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits-lounge.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/hsbc-credit-card-terms.pdf\nhttps://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/offers/welcome-terms-and-conditions.pdf",
+  "kind": "source_superseded",
+  "question": "我哋引用緊 https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf（purpose: scheme），但 https://www.hsbc.com.hk/zh-hk/credit-cards/products/everymile/ 已經冇 link 佢。應該換邊份？",
+  "question_id": "hsbc_everymile_scheme_source_superseded",
+  "raised_at": "2026-08-29T12:02:42.090Z",
+  "raised_by": "agent1_source_drift",
+  "rule_id": null,
+  "source_url": "https://www.hsbc.com.hk/zh-hk/credit-cards/products/everymile/",
+  "status": "open"
+}
