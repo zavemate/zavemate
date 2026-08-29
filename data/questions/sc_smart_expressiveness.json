@@ -1,0 +1,14 @@
+{
+  "answer": null,
+  "answered_at": null,
+  "card_id": "sc_smart",
+  "evidence": "The CashBack earned will be shown on the 360° Rewards Redemption Platform after the calculation is completed, and will not be automatically credited to the Card account, but can be freely redeemed for CashBack under the online catalogue of the platform. The CashBack will be given in Hong Kong dollars and the minimum threshold for CashBack redemption per Card account is HKD50 per account redemption.",
+  "kind": "expressiveness",
+  "question": "呢張卡個 CashBack 唔會自動入卡數——要自己上 360° Rewards 平台兌換，而且夠 HK$50 先兌到。我哋而家記做 type: \"cash_rebate\"，同一個真係自動入賬嘅回贈冇分別。RewardRule 應唔應該加個欄位表達「要自己兌換」同「兌換門檻」？定係留返去 /best-card 嗰層先處理？",
+  "question_id": "sc_smart_expressiveness",
+  "raised_at": "2026-08-29T06:09:54.071Z",
+  "raised_by": "human",
+  "rule_id": null,
+  "source_url": "https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf",
+  "status": "open"
+}
