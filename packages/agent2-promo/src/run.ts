@@ -1,4 +1,4 @@
-import { openPR, type PRFile } from '@zavemate/core';
+import { buildPRBody, openPR, type PRFile } from '@zavemate/core';
 import { type Card, canonicalStringify, type JsonValue, type Promotion, type Source, type Sources } from '@zavemate/schema';
 import { applyExtractedPromotions } from './apply.ts';
 import type { SuspectedDuplicate } from './dedupe.ts';
@@ -267,26 +267,26 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     });
   }
 
-  const body = [`**限時優惠掃描 —— ${today}**`, '', '### 改動', ...notes.map((n) => `- ${n}`)];
-
-  if (proposed.size > 0) {
-    body.push(
-      '',
-      '### 🔎 提議新增官方來源',
-      '第三方平台快，但唔準；官方準，但慢。以下係第三方文章 link 住嘅官方出處——merge 咗之後，下次跑就會由官方版覆寫同一個 promotion_id，confidence 升做 official（會冧 confidence_upgraded gate 要人確認）。',
-      ...[...proposed.values()].map((s) => `- \`${s.source_id}\`：${s.url}`),
-    );
-  }
-  if (duplicates.length > 0) {
-    body.push(
-      '',
-      '### ⚠️ 疑似重複',
-      '冇自動合併——自動合併等於我哋自己做「似唔似」判斷，正正係 §6.5 叫唔好做嘅嘢。',
-      ...duplicates.map((d) => `- ${d.extractedSlug} vs ${d.existingId}：${d.reason}`),
-    );
-  }
-  if (attention.length > 0) body.push('', '### ⚠️ 需要人手覆核', ...attention.map((n) => `- ${n}`));
-  body.push('', '### 成本', `- 總 LLM cost：$${totalCostUsd.toFixed(4)}`);
+  const body = buildPRBody({
+    title: '限時優惠掃描',
+    date: today,
+    totalCostUsd,
+    sections: [
+      { heading: '改動', items: notes },
+      {
+        heading: '🔎 提議新增官方來源',
+        intro:
+          '第三方平台快，但唔準；官方準，但慢。以下係第三方文章 link 住嘅官方出處——merge 咗之後，下次跑就會由官方版覆寫同一個 promotion_id，confidence 升做 official（會冧 confidence_upgraded gate 要人確認）。',
+        items: [...proposed.values()].map((source) => `\`${source.source_id}\`：${source.url}`),
+      },
+      {
+        heading: '⚠️ 疑似重複',
+        intro: '冇自動合併——自動合併等於我哋自己做「似唔似」判斷，正正係 §6.5 叫唔好做嘅嘢。',
+        items: duplicates.map((d) => `${d.extractedSlug} vs ${d.existingId}：${d.reason}`),
+      },
+      { heading: '⚠️ 需要人手覆核', items: attention },
+    ],
+  });
 
   const labels: string[] = [];
   if (attention.length > 0 || duplicates.length > 0 || proposed.size > 0) labels.push('needs-review');
@@ -299,7 +299,7 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     branchName: `agent2/${today}`,
     files,
     title: `chore(agent2): promo scan — ${added} new, ${updatedCount} updated, ${expiry.expired.length} expired`,
-    body: body.join('\n'),
+    body,
     labels,
   });
 

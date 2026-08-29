@@ -63,23 +63,21 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
     patch(rule);
   };
 
-  if (outcome.kind === 'fetch_failed') {
-    for (const rule of work.rules) {
-      patchRule(rule.cardId, rule.rule_id, (r) => {
-        r.provenance.check_fail_count += 1;
-        r.provenance.last_checked_at = now;
-      });
-      const newCount = getOrCloneCard(rule.cardId).rewards.find((r) => r.rule_id === rule.rule_id)!.provenance
-        .check_fail_count;
-      notes.push(`⚠️ ${rule.cardId}/${rule.rule_id}：fetch 失敗（${outcome.error.message}），check_fail_count → ${newCount}`);
-      if (newCount >= 3) brokenSources.push(work.sourceUrl);
-    }
-    return { updatedCards, notes, brokenSources, attentionNeeded, evidenceGaps };
-  }
+  // fetch 失敗同抽取太薄係同一件事：**我哋今次讀唔到呢份文件。**
+  //
+  // 兩者都唔郁數值、唔郁 confidence、唔郁 last_verified_at，淨係累積
+  // check_fail_count 等佢浮上水面。分開寫嘅話兩段邏輯會慢慢飄開——之前就係
+  // 逐字抄咗一份。
+  //
+  // 唯一嘅分別：抽取太薄仲會多開一條 attention。fetch 失敗多數係暫時性
+  // （網絡、限流），下次自己會好；但「抓到份文件但抽唔到文字」係穩定嘅
+  // （圖片型 PDF 每次都一樣），要人手介入換出處，唔會自己好返。
+  if (outcome.kind === 'fetch_failed' || outcome.kind === 'extraction_too_thin') {
+    const why =
+      outcome.kind === 'fetch_failed'
+        ? `fetch 失敗（${outcome.error.message}）`
+        : `抓到份文件但抽唔到文字（${outcome.reason}）`;
 
-  if (outcome.kind === 'extraction_too_thin') {
-    // 同 fetch_failed 一樣處理：讀唔到就唔郁數值、唔郁 confidence、唔郁
-    // last_verified_at，淨係累積 check_fail_count 等佢浮上水面。
     for (const rule of work.rules) {
       patchRule(rule.cardId, rule.rule_id, (r) => {
         r.provenance.check_fail_count += 1;
@@ -87,14 +85,15 @@ export function applyWork(cardsById: Map<string, Card>, work: SourceWork, outcom
       });
       const newCount = getOrCloneCard(rule.cardId).rewards.find((r) => r.rule_id === rule.rule_id)!.provenance
         .check_fail_count;
-      notes.push(
-        `⚠️ ${rule.cardId}/${rule.rule_id}：抓到份文件但抽唔到文字（${outcome.reason}），check_fail_count → ${newCount}`,
-      );
+      notes.push(`⚠️ ${rule.cardId}/${rule.rule_id}：${why}，check_fail_count → ${newCount}`);
       if (newCount >= 3) brokenSources.push(work.sourceUrl);
     }
-    attentionNeeded.push(
-      `${work.sourceUrl}：抽取失敗（${outcome.reason}）——呢份文件可能要人手讀，或者要搵第二個出處`,
-    );
+
+    if (outcome.kind === 'extraction_too_thin') {
+      attentionNeeded.push(
+        `${work.sourceUrl}：抽取失敗（${outcome.reason}）——呢份文件可能要人手讀，或者要搵第二個出處`,
+      );
+    }
     return { updatedCards, notes, brokenSources, attentionNeeded, evidenceGaps };
   }
 
