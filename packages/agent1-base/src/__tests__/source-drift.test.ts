@@ -110,3 +110,34 @@ describe('productPageOf', () => {
     expect(productPageOf(withSources([{ url: OLD, purpose: 'scheme' }]))).toBeNull();
   });
 });
+
+describe('唔應該檢查嘅 source', () => {
+  const EN_DOC = 'https://av.example.test/docs/scheme-en.pdf';
+
+  it('programme_base 唔比 —— 佢係發卡行通用條款，唔會出現喺卡頁', () => {
+    // 實測三張滙豐卡冇一張嘅卡頁 link rewards/terms-and-conditions.pdf。
+    // 當佢 drift 就係每張卡開一條永遠答唔到嘅假 question。
+    const drifts = findSourceDrift({
+      card: withSources([{ url: OLD, purpose: 'programme_base' }, { url: PAGE, purpose: 'product_page' }]),
+      productPageUrl: PAGE,
+      linkedDocs: new Set([NEW]),
+    });
+    expect(drifts).toEqual([]);
+  });
+
+  it('語言對唔上唔比 —— 中文卡頁唔可以用嚟判英文版過唔過時', () => {
+    // 滙豐每張卡有中英兩版 scheme（英文法律為準但係圖片型 PDF），
+    // 所以呢個唔係邊緣情況。
+    const card = withSources([{ url: EN_DOC, purpose: 'scheme' }, { url: PAGE, purpose: 'product_page' }]);
+    card.sources[0]!.language = 'en';
+
+    expect(findSourceDrift({ card, productPageUrl: PAGE, linkedDocs: new Set([NEW]), pageLanguage: 'zh' })).toEqual([]);
+    // 同語言就照比
+    expect(findSourceDrift({ card, productPageUrl: PAGE, linkedDocs: new Set([NEW]), pageLanguage: 'en' })).toHaveLength(1);
+  });
+
+  it('任何一邊冇標語言就照比 —— 寧願誤報都好過靜靜哋唔檢查', () => {
+    const card = withSources([{ url: OLD, purpose: 'scheme' }, { url: PAGE, purpose: 'product_page' }]);
+    expect(findSourceDrift({ card, productPageUrl: PAGE, linkedDocs: new Set([NEW]), pageLanguage: 'zh' })).toHaveLength(1);
+  });
+});

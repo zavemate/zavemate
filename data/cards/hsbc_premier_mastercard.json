@@ -84,6 +84,15 @@
       "note": "銀行自己列嘅適用條款目錄。由頭到尾冇任何 reward scheme——證實呢張卡根本冇卡專屬獎賞計劃，佢個回贈就係 RewardCash 計劃地板，唔係我哋搵漏。",
       "purpose": "card_index",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/premier-mastercard/important-information.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": false,
+      "language": "zh",
+      "last_modified": null,
+      "note": "發卡行自己嘅卡頁——用嚟核對佢而家 link 緊邊幾份條款",
+      "purpose": "product_page",
+      "url": "https://www.hsbc.com.hk/zh-hk/credit-cards/products/premier-mastercard/"
     }
   ]
 }

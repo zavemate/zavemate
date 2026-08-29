@@ -103,6 +103,15 @@
       "note": "法律上為準嘅英文版，但係圖片型 PDF（4 頁 101 字元），抽唔到文字。收喺度係為咗監察佢有冇改——數值由中文版抽。",
       "purpose": "scheme",
       "url": "https://www.hsbc.com.hk/content/dam/hsbc/hk/docs/credit-cards/reward-scheme-terms-and-conditions.pdf"
+    },
+    {
+      "etag": null,
+      "is_authoritative": false,
+      "language": "zh",
+      "last_modified": null,
+      "note": "發卡行自己嘅卡頁——用嚟核對佢而家 link 緊邊幾份條款",
+      "purpose": "product_page",
+      "url": "https://www.hsbc.com.hk/zh-hk/credit-cards/products/red/"
     }
   ]
 }
