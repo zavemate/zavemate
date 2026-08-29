@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractLinkedDocs, findSourceDrift, productPageOf } from '../source-drift.ts';
+import { extractLinkedDocs, findSourceDrift, productPageOf, summariseLinkedDocs } from '../source-drift.ts';
 import { card } from './fixtures.ts';
 
 const PAGE = 'https://www.sc.com/hk/zh/credit-cards/simplycash/';
@@ -139,5 +139,38 @@ describe('唔應該檢查嘅 source', () => {
   it('任何一邊冇標語言就照比 —— 寧願誤報都好過靜靜哋唔檢查', () => {
     const card = withSources([{ url: OLD, purpose: 'scheme' }, { url: PAGE, purpose: 'product_page' }]);
     expect(findSourceDrift({ card, productPageUrl: PAGE, linkedDocs: new Set([NEW]), pageLanguage: 'zh' })).toHaveLength(1);
+  });
+});
+
+describe('summariseLinkedDocs', () => {
+  // 真實個案：EveryMile 卡頁 link 住 13 份 PDF，滙豐啲 URL 每條約 100 字，
+  // 夾埋約 1,300 字，直接爆 Question.evidence 個 max(500)，成個 run 嘅
+  // validate 紅晒（run 33251522019）。原本個 seam fixture 只有 1 份 doc，
+  // 掂唔到上限——shape 啱唔代表 size 啱。
+  const hsbcUrl = (n: string) =>
+    `https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-${n}.pdf`;
+
+  it('少量文件 → 出完整 URL（最有用，撳得）', () => {
+    const out = summariseLinkedDocs([hsbcUrl('a'), hsbcUrl('b')]);
+    expect(out).toContain(hsbcUrl('a'));
+    expect(out.length).toBeLessThanOrEqual(500);
+  });
+
+  it('13 份滙豐 PDF → 唔會爆 500，但仲睇得出邊份係邊份', () => {
+    const docs = Array.from({ length: 13 }, (_, i) => hsbcUrl(`doc-number-${i}`));
+    const out = summariseLinkedDocs(docs);
+    expect(out.length).toBeLessThanOrEqual(500);
+    expect(out).toContain('everymile-doc-number-0.pdf');
+  });
+
+  it('多到連檔名都放唔晒 → 截斷，但一定要講明剩返幾多份', () => {
+    const docs = Array.from({ length: 60 }, (_, i) => hsbcUrl(`a-rather-long-document-name-${i}`));
+    const out = summariseLinkedDocs(docs);
+    expect(out.length).toBeLessThanOrEqual(500);
+    expect(out).toMatch(/…仲有 \d+ 份，見卡頁/);
+  });
+
+  it('一份都冇 → 唔會炸', () => {
+    expect(summariseLinkedDocs([]).length).toBeLessThanOrEqual(500);
   });
 });
