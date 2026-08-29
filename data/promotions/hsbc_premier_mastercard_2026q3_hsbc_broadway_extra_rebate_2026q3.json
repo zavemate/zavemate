@@ -1,0 +1,57 @@
+{
+  "active": true,
+  "cap": {
+    "period": "month",
+    "pool_id": "hsbc_premier_mastercard_2026q3_hsbc_broadway_extra_rebate_2026q3_cap",
+    "shared_with": [],
+    "unit": "spend",
+    "value": 14000
+  },
+  "card_id": "hsbc_premier_mastercard",
+  "description": null,
+  "end_date": "2026-08-31",
+  "match": {
+    "channel": [
+      "offline",
+      "online"
+    ],
+    "currency": [
+      "HKD"
+    ],
+    "mcc_exclude": null,
+    "mcc_include": null,
+    "merchant_exclude": null,
+    "merchant_include": [
+      "百老滙"
+    ],
+    "min_spend_per_txn": null,
+    "scope": "criteria"
+  },
+  "new_customer_only": false,
+  "promotion_id": "hsbc_premier_mastercard_2026q3_hsbc_broadway_extra_rebate_2026q3",
+  "provenance": {
+    "check_fail_count": 0,
+    "confidence": "crowdsourced",
+    "content_hash": null,
+    "evidence_excerpt": "累積合資格簽賬 $10,000或以上：其他信用卡 6%（上限簽$14,000回$700）",
+    "last_checked_at": "2026-08-28T22:00:31.071Z",
+    "last_verified_at": null,
+    "source_url": "https://hkcashrebate.com/category/%E9%99%90%E6%99%82%E5%84%AA%E6%83%A0/feed"
+  },
+  "registration_url": null,
+  "requires_registration": true,
+  "reward": {
+    "bonus_amount": null,
+    "hkd_per_mile": null,
+    "multiplier": null,
+    "rate": 0.06,
+    "type": "cash_rebate"
+  },
+  "stacking": {
+    "priority": 0,
+    "stack_group": null,
+    "stackable_with_base": true
+  },
+  "start_date": "2026-07-01",
+  "title": "滙豐最紅大折日百老滙優惠：高達額外6%獎賞錢"
+}
