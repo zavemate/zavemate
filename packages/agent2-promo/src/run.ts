@@ -164,7 +164,7 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     if (outcome.itemNotes) for (const note of outcome.itemNotes) notes.push(`    ${note}`);
 
     const result = applyExtractedPromotions({
-      extracted: outcome.result.promotions,
+      batches: outcome.batches,
       existing: promotions,
       cards: cardsForSource(cards, source),
       existingForPrompt: existingForPrompt(promotions, source.card_ids, quarterLabel(today)),
@@ -185,7 +185,8 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     // 第一次真跑就撞到呢個：HSBC 同第三方兩個 source 都成功抽取、都叫咗 LLM、
     // 都搵到 0 個優惠——然後 PR body 一個字都冇提過佢哋。個 PR 睇落好似只跑過
     // 一個 source。對事實層嚟講，「查過冇嘢」同「冇查過」唔可以分唔出。
-    const found = outcome.result.promotions.length;
+    const allPromotions = outcome.batches.flatMap((b) => b.promotions);
+    const found = allPromotions.length;
     const written = result.updated.size;
     notes.push(
       found === 0
@@ -199,7 +200,7 @@ export async function runAgent2(options: Agent2RunOptions): Promise<Agent2RunRes
     // ── 提議官方來源（crowdsourced → official 嘅升級路徑）────────────
     if (source.source_type !== 'third_party') continue;
     const knownUrls = new Set(sourcesFile.sources.map((s) => s.url));
-    for (const promo of outcome.result.promotions) {
+    for (const promo of allPromotions) {
       const url = promo.official_source_url;
       if (url === null || knownUrls.has(url) || proposed.has(url)) continue;
       if (!isUsableOfficialSource(url, source.url)) {
