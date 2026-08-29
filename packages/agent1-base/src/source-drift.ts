@@ -63,7 +63,18 @@ export interface DriftInput {
   card: Card;
   productPageUrl: string;
   linkedDocs: Set<string>;
+  /** 產品頁本身嘅語言。淨係比同語言嘅文件——見下面。 */
+  pageLanguage?: 'en' | 'zh' | null;
 }
+
+/**
+ * 唔屬於任何一張卡頁嘅 purpose。
+ *
+ * `programme_base` 係發卡行**通用**獎賞計劃條款（HSBC RewardCash Programme）。
+ * 佢住喺 rewards hub，唔會出現喺某一張卡嘅產品頁——實測三張滙豐卡冇一張嘅
+ * 卡頁 link 佢。當佢 drift 就係為每張卡開一條永遠答唔到嘅假 question。
+ */
+const NOT_CARD_PAGE_PURPOSES = new Set(['programme_base']);
 
 /**
  * 純函數：對比一張卡引用緊嘅文件同卡頁 link 緊嘅文件。
@@ -81,6 +92,20 @@ export function findSourceDrift(input: DriftInput): SourceDrift[] {
   const drifts: SourceDrift[] = [];
   for (const source of input.card.sources) {
     if (!/\.pdf$/i.test(new URL(source.url).pathname)) continue;
+    if (NOT_CARD_PAGE_PURPOSES.has(source.purpose)) continue;
+
+    // 語言對唔上就唔比。中文卡頁梗係 link 中文 PDF——攞佢嚟判英文版係咪
+    // 過時，答案永遠係「過時」。滙豐每張卡都有中英兩個版本嘅 scheme
+    // （英文版法律為準但係圖片型 PDF），所以呢個唔係邊緣情況。
+    // 任何一邊冇標語言就照比——寧願誤報，都好過靜靜哋唔檢查。
+    if (
+      input.pageLanguage != null &&
+      source.language != null &&
+      source.language !== input.pageLanguage
+    ) {
+      continue;
+    }
+
     if (input.linkedDocs.has(source.url)) continue;
 
     drifts.push({

@@ -196,7 +196,13 @@ export async function runAgent1(options: Agent1RunOptions): Promise<Agent1RunRes
       continue;
     }
 
-    for (const drift of findSourceDrift({ card, productPageUrl: pageUrl, linkedDocs: extractLinkedDocs(html, pageUrl) })) {
+    const pageLanguage = card.sources.find((source) => source.url === pageUrl)?.language ?? null;
+    for (const drift of findSourceDrift({
+      card,
+      productPageUrl: pageUrl,
+      linkedDocs: extractLinkedDocs(html, pageUrl),
+      pageLanguage,
+    })) {
       const id = questionId(`${drift.cardId}_${drift.purpose}`, 'source_superseded');
       if (questions.has(id)) continue;
       questions.set(id, {
