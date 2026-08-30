@@ -1,0 +1,14 @@
+{
+  "answer": null,
+  "answered_at": null,
+  "card_id": "hsbc_everymile",
+  "evidence": "卡頁而家 link 緊：\neverymile-paywithrc-spend.pdf\neverymile-plaza-premium.pdf\nimportant-information.pdf\ninterest-free-instalment.pdf\nkey-fact-statement.pdf\nagoda-terms-and-conditions.pdf\neverymile-everyday-spend.pdf\neverymile-insurance-policy-factsheet.pdf\neverymile-rewards-scheme-paywithrc-benefits.pdf\neverymile-rewards-scheme-travel-benefits-complimentary.pdf\neverymile-rewards-scheme-travel-benefits-lounge.pdf\nhsbc-credit-card-terms.pdf\nwelcome-terms-and-conditions.pdf",
+  "kind": "source_superseded",
+  "question": "我哋引用緊 https://www.hsbc.com.hk/content/dam/hsbc/hk/tc/docs/credit-cards/everymile/everymile-rewards-scheme-travel-benefits.pdf（purpose: scheme），但 https://www.hsbc.com.hk/zh-hk/credit-cards/products/everymile/ 已經冇 link 佢。應該換邊份？",
+  "question_id": "hsbc_everymile_scheme_source_superseded",
+  "raised_at": "2026-08-30T20:05:32.894Z",
+  "raised_by": "agent1_source_drift",
+  "rule_id": null,
+  "source_url": "https://www.hsbc.com.hk/zh-hk/credit-cards/products/everymile/",
+  "status": "open"
+}
