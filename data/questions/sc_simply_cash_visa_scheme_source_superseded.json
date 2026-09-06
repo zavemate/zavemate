@@ -1,0 +1,14 @@
+{
+  "answer": null,
+  "answered_at": null,
+  "card_id": "sc_simply_cash_visa",
+  "evidence": "卡頁而家 link 緊：\nhttps://av.sc.com/hk/content/docs/hk-cc-noc.pdf\nhttps://av.sc.com/hk/content/docs/hk-cc-simplycashcard-kfs.pdf\nhttps://av.sc.com/hk/content/docs/hk-cc-steps-of-tax-payment.pdf\nhttps://av.sc.com/hk/content/docs/hk-ntc-ic2-offer-tnc.pdf\nhttps://av.sc.com/hk/content/docs/hk-promo-simply-cash-tnc.pdf\nhttps://www.sc.com/content/dam/sc/hk/shared/hk-gn050-v2-nov23.pdf",
+  "kind": "source_superseded",
+  "question": "我哋引用緊 https://av.sc.com/hk/zh/content/docs/hk-promo-simply-cash-tnc-noc.pdf（purpose: scheme），但 https://www.sc.com/hk/zh/credit-cards/simplycash/ 已經冇 link 佢。應該換邊份？",
+  "question_id": "sc_simply_cash_visa_scheme_source_superseded",
+  "raised_at": "2026-09-06T20:09:59.346Z",
+  "raised_by": "agent1_source_drift",
+  "rule_id": null,
+  "source_url": "https://www.sc.com/hk/zh/credit-cards/simplycash/",
+  "status": "open"
+}

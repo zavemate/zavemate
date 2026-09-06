@@ -1,0 +1,14 @@
+{
+  "answer": null,
+  "answered_at": null,
+  "card_id": "sc_smart",
+  "evidence": "卡頁而家 link 緊：\nhk-cc-smartcard-kfs.pdf\nhk-cc-steps-of-tax-payment.pdf\nhk-credit-card-key-facts-statement.pdf\nhk-noc-gn151-1124.pdf\nhk-ntc-ic2-offer-tnc.pdf\nhk-promo-smart-tnc.pdf\nhk-tncs-smart-limitedtime200.pdf\nhk-gn050-v2-nov23.pdf",
+  "kind": "source_superseded",
+  "question": "我哋引用緊 https://av.sc.com/hk/zh/content/docs/hk-promo-smart-tnc.pdf（purpose: scheme），但 https://www.sc.com/hk/zh/credit-cards/smart/ 已經冇 link 佢。應該換邊份？",
+  "question_id": "sc_smart_scheme_source_superseded",
+  "raised_at": "2026-09-06T20:09:59.346Z",
+  "raised_by": "agent1_source_drift",
+  "rule_id": null,
+  "source_url": "https://www.sc.com/hk/zh/credit-cards/smart/",
+  "status": "open"
+}
